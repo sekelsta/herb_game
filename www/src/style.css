@@ -51,13 +51,17 @@ body {
   font-size: 64px;
 }
 
-#terminal {
-  height: 500px;
-
+#terminal-wrapper {
   border-radius: 12px;
   padding: 12px;
 
   background-color: black;
+}
+
+#terminal {
+  height: 50ch;
+  width: 80ch;
+
   color: greenyellow;
   font-family: "Courier New", Courier, monospace;
 }
