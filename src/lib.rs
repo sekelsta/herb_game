@@ -39,10 +39,17 @@ impl World {
         }
     }
 
-    //fn get_ingredient(&self, params: &str) -> Result<&mut Ingredient, String> {
-        // TODO: Return specified ingredient from satchel or cauldron
-        //Err("You have no such ingredient".to_string())
-    //}
+    fn take_ingredient(&mut self, params: &str) -> Result<Ingredient, String> {
+        if params == "" {
+            let c = self.cauldron.take();
+            return match c {
+                Some(ingredient) => Ok(ingredient),
+                None => Err("The cauldron is empty".to_string()),
+            }
+        }
+        // TODO: Remove and return specified ingredient from satchel
+        Err("You have no such ingredient.".to_string())
+    }
 
     fn bottle(&mut self, ingredient: &mut Ingredient) -> Result<String, String> {
         if self.empty_bottles <= 0 {
@@ -107,7 +114,16 @@ pub fn step(world: &mut World, command: &str) -> String {
     let params = words.collect::<Vec<&str>>().join(" ");
     match verb {
         "brew" => world.decoct(&params),
-        //"bottle" => world.get_ingredient(&params).map_or_else(|e| e, |i| world.bottle(&mut i).unwrap()),
+        "bottle" => {
+            match world.take_ingredient(&params) {
+                Ok(mut i) => {
+                    let result = world.bottle(&mut i);
+                    world.satchel.push(i);
+                    result.unwrap_or_else(|e| e)
+                }
+                Err(e) => e,
+            }
+        },
         "look" => world.look(&params),
         "help" => world.help(&params),
         _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
