@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 wasm-build
+# Ignoring this to prevent cross-platform transitive dep conflicts from rolldown.
+pnpm-lock.yaml
