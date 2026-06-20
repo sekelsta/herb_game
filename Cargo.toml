@@ -1,0 +1,8 @@
+[package]
+name = "herbgenetics"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+enum-map = "2.7.3"
+once_cell = "1.21.4"
