@@ -53,8 +53,9 @@ function submitInput() {
 async function doOutput(output: string, gradual = true) {
   if (gradual) {
     // Output one line per second.
-    for (const char of output) {
-      outputSpan.innerText += char;
+    for (let i = 0; i < output.length; i++) {
+      outputSpan.innerText += output[i];
+      scrollToBottom();
       await new Promise((resolve) => setTimeout(resolve, 1000 / 80));
     }
   } else {

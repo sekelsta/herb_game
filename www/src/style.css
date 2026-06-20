@@ -39,7 +39,6 @@ body {
 
 #content {
   margin: 32px;
-  width: 800px;
 }
 
 #title {
@@ -52,6 +51,7 @@ body {
   border-radius: 12px;
   padding: 12px;
   overflow-y: scroll;
+  overflow-x: hidden;
 
   /* Set font-family here so we can specify height in ch. */
   font-family: "Courier New", Courier, monospace;
