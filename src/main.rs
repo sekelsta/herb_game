@@ -1,9 +1,8 @@
 use std::io::{self, BufRead, Write};
 
-use herb_game::{step, welcome, World};
+use herb_game::{step, welcome};
 
 fn main() -> io::Result<()> {
-    let mut world = World::new();
     println!("{}", welcome());
     loop {
         print!("\n> ");
@@ -23,7 +22,7 @@ fn main() -> io::Result<()> {
             break;
         }
 
-        let result = step(&mut world, &line);
+        let result = step(&line);
         println!("{result}");
     }
 

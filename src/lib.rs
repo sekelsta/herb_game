@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 use std::io::{self, BufRead, Write};
+use once_cell::sync::Lazy;
 
 mod alchemy;
 
 use crate::alchemy::*;
+
+static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
 struct Location {
     name: &'static str,
@@ -52,13 +55,18 @@ impl World {
     }
 
     fn bottle(&mut self, ingredient: &mut Ingredient) -> Result<String, String> {
-        if self.empty_bottles <= 0 {
-            return Err("You don't have an empty glass bottle. Buy more bottles, or use or sell your potions.".to_string());
+        match ingredient.container {
+            Container::Bottle => Err(format!("The {} is already bottled.", ingredient.name())),
+            Container::None => {
+                if self.empty_bottles <= 0 {
+                    return Err("You don't have an empty glass bottle. Buy more bottles, or use or sell your potions.".to_string());
+                }
+                self.empty_bottles -= 1;
+                let result = format!("You put the {} into a clean bottle.", ingredient.name());
+                ingredient.container = Container::Bottle;
+                Ok(result)
+            }
         }
-        self.empty_bottles -= 1;
-        let result = format!("You put the {} into a clean bottle.", ingredient.name());
-        ingredient.container = Container::Bottle;
-        Ok(result)
     }
 
     fn infuse(&mut self, base: &mut Ingredient, addition: &mut Ingredient) -> String {
@@ -105,27 +113,31 @@ pub fn welcome() -> String {
     "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!".to_string()
 }
 
-pub fn step(world: &mut World, command: &str) -> String {
-    let mut words = command.split_whitespace();
-    let verb = match words.next() {
-        Some(v) => v,
-        None => return "".to_string(),
-    };
-    let params = words.collect::<Vec<&str>>().join(" ");
-    match verb {
-        "brew" => world.decoct(&params),
-        "bottle" => {
-            match world.take_ingredient(&params) {
-                Ok(mut i) => {
-                    let result = world.bottle(&mut i);
-                    world.satchel.push(i);
-                    result.unwrap_or_else(|e| e)
+pub fn step(command: &str) -> String {
+    // Not safe for multiple threads, but the program is already constrained to single-threaded for browser compatibility
+    unsafe {
+        let mut world = &mut *(&raw mut WORLD);
+        let mut words = command.split_whitespace();
+        let verb = match words.next() {
+            Some(v) => v,
+            None => return "".to_string(),
+        };
+        let params = words.collect::<Vec<&str>>().join(" ");
+        match verb {
+            "brew" => world.decoct(&params),
+            "bottle" => {
+                match world.take_ingredient(&params) {
+                    Ok(mut i) => {
+                        let result = world.bottle(&mut i);
+                        world.satchel.push(i);
+                        result.unwrap_or_else(|e| e)
+                    }
+                    Err(e) => e,
                 }
-                Err(e) => e,
-            }
-        },
-        "look" => world.look(&params),
-        "help" => world.help(&params),
-        _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
+            },
+            "look" => world.look(&params),
+            "help" => world.help(&params),
+            _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
+        }
     }
 }
