@@ -27,4 +27,6 @@ Build for browser: In www folder,
 pnpm build
 ```
 
-Note: You will need to run `pnpm wasm` before running `pnpm lint`.
+This builds all assets as a static site to `www/dist`.
+
+Note: You will need to run `pnpm wasm` before you can run `pnpm lint`.
