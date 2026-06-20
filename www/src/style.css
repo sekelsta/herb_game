@@ -1,0 +1,98 @@
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#background {
+  width: 100%;
+  min-height: 100%;
+  overflow: auto;
+
+  display: flex;
+  justify-content: center;
+
+  /* Background color*/
+  animation: pulse 80s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    /* water */
+    background-color: rgba(0, 87, 250, 0.639);
+  }
+  25% {
+    /* air */
+    background-color: rgb(238, 237, 222);
+  }
+  50% {
+    /* fire */
+    background-color: rgb(208, 76, 27);
+  }
+  75% {
+    /* earth */
+    background-color: rgb(165, 116, 42);
+  }
+}
+
+#content {
+  margin: 32px;
+  width: 800px;
+}
+
+#title {
+  text-align: center;
+  font-size: 64px;
+  user-select: none;
+}
+
+#terminal-wrapper {
+  border-radius: 12px;
+  padding: 12px;
+  overflow-y: scroll;
+
+  /* Set font-family here so we can specify height in ch. */
+  font-family: "Courier New", Courier, monospace;
+  line-height: 1.5;
+  height: calc(50ch + 2 * 12px);
+
+  background-color: black;
+  cursor: text;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+#terminal {
+  width: 80ch;
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  p {
+    margin: 0;
+    padding: 0;
+  }
+
+  .input {
+    color: greenyellow;
+  }
+  .output {
+    color: orange;
+  }
+  .cursor {
+    user-select: none;
+    color: white;
+
+    opacity: 0;
+    animation: blink 1s step-start 0s infinite;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 1;
+  }
+}
