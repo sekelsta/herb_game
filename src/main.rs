@@ -3,7 +3,7 @@ use std::fmt;
 use std::io::{self, BufRead, Write};
 use once_cell::sync::Lazy;
 
-use enum_map::{enum_map, Enum, EnumMap};
+use enum_map::{Enum, EnumMap};
 
 const TAINTABLE_ELEMENTS: [Element; 13] = [
     Element::Mana,
@@ -21,17 +21,19 @@ const TAINTABLE_ELEMENTS: [Element; 13] = [
     Element::Order,
 ];
 
-static DANDELION: Lazy<Ingredient> = Lazy::new(|| Ingredient { elements: vec! {
-    (Element::Air, Modifier::Provide, 2),
-    (Element::Fire, Modifier::Provide, 1),
-    (Element::Water, Modifier::Destabilize, 1),
-}});
+static DANDELION: Lazy<Ingredient> = Lazy::new(|| {
+    let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
+    elements[Element::Air][Modifier::Provide] = 2;
+    elements[Element::Fire][Modifier::Provide] = 1;
+    elements[Element::Water][Modifier::Stabilize] = -1;
+    Ingredient { kind: IngredientKind::FreshHerb, elements }
+});
 
-static VIOLET: Lazy<Ingredient> = Lazy::new(|| Ingredient { elements: vec! {
-    (Element::Water, Modifier::Provide, 2),
-    (Element::Order, Modifier::Provide, 1),
-    (Element::Chaos, Modifier::Strengthen, 1),
-}});
+static CAULDRON_WATER: Lazy<Ingredient> = Lazy::new(|| {
+    let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
+    elements[Element::Water][Modifier::Provide] = 4;
+    Ingredient { kind: IngredientKind::Decoction, elements }
+});
 
 #[derive(Clone, Copy, Debug, Enum, PartialEq)]
 enum Element {
@@ -53,25 +55,17 @@ enum Element {
 
 #[derive(Clone, Copy, Debug, Enum, PartialEq)]
 enum Modifier {
-    Strengthen,
-    Reduce,
-    Stabilize,
-    Destabilize,
+    Strengthen, // Weaken if value is negative
+    Stabilize, // Destabilize if value is negative
     Provide,
+    //Join,
+    //Split,
 }
 
-struct Ingredient {
-    pub elements: Vec<(Element, Modifier, i32)>,
-}
-
-#[derive(Debug, Default)]
-struct ElementStatus {
-    pub power: i32,
-    pub stability: i32,
-}
-
-#[derive(Debug)]
-enum PotionKind {
+#[derive(Clone, Copy, Debug)]
+enum IngredientKind {
+    FreshHerb,
+    DryHerb,
     Decoction, // Boil for herbal tea
     Infusion, // Cold soak
     Tincture, // Soak in alcohol
@@ -80,83 +74,101 @@ enum PotionKind {
     Poultice,
     Incense, // For resins, or Smudge for leaves/flowers
     Smudge,
-    Salt
+    Ash,
+    Salt,
 }
 
-impl fmt::Display for PotionKind {
+impl IngredientKind {
+    fn occupies_bottle(&self) -> bool {
+        match self {
+            Self::FreshHerb | Self::DryHerb | Self::Smudge | Self::Incense => false,
+            Self::Decoction | Self::Infusion | Self::Tincture | Self::Oil => true,
+            Self::Salve | Self::Poultice => true,
+            Self::Salt | Self::Ash => true,
+        }
+    }
+}
+
+impl fmt::Display for IngredientKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-struct Work {
-    kind: PotionKind,
-    elements: EnumMap<Element, ElementStatus>,
+#[derive(Clone, Debug)]
+struct Ingredient {
+    pub kind: IngredientKind,
+    pub elements: EnumMap<Element, EnumMap<Modifier, i32>>,
 }
 
-impl Work {
-    fn new_in_cauldron() -> Self {
-        let mut elements: EnumMap<Element, ElementStatus> = EnumMap::default();
-        elements[Element::Water].power = 4;
-        Work {
-            kind: PotionKind::Decoction,
-            elements,
-        }
-    }
-
-    fn tick(&mut self) {
-        match self.kind {
-            PotionKind::Decoction => {
-                // One air evaporates, if present
-                self.elements[Element::Air].power = (self.elements[Element::Air].power - 1).max(0);
-                // Taint spreads
-                let tainted = self.elements[Element::Taint].power;
-                for _ in 0..tainted {
-                    let mut most = TAINTABLE_ELEMENTS[0];
-                    for e in TAINTABLE_ELEMENTS {
-                        if self.elements[e].power > self.elements[most].power {
-                            most = e;
-                        }
-                    }
-                    if self.elements[most].power > 0 {
-                        self.elements[most].power -= 1;
-                        self.elements[Element::Taint].power += 1;
-                    }
+impl Ingredient {
+    fn boil(&mut self) -> String {
+        // One air evaporates, if present
+        let air_evaporated = self.elements[Element::Air][Modifier::Provide] > 0;
+        self.elements[Element::Air][Modifier::Provide] = (self.elements[Element::Air][Modifier::Provide] - 1).max(0);
+        // Taint spreads
+        let tainted = self.elements[Element::Taint][Modifier::Provide];
+        let mut taint_spread = false;
+        for _ in 0..tainted {
+            let mut most = TAINTABLE_ELEMENTS[0];
+            for e in TAINTABLE_ELEMENTS {
+                if self.elements[e][Modifier::Provide] > self.elements[most][Modifier::Provide] {
+                    most = e;
                 }
-            },
-            _ => todo!(),
+            }
+            if self.elements[most][Modifier::Provide] > 0 {
+                self.elements[most][Modifier::Provide] -= 1;
+                self.elements[Element::Taint][Modifier::Provide] += 1;
+                taint_spread = true;
+            }
+        }
+        match (taint_spread, air_evaporated) {
+            (false, false) => "The cauldron boils.".to_string(),
+            (false, true) => "The cauldron boils. Elemental air evaporates.".to_string(),
+            (true, false) => "The cauldron boils. Taint spreads.".to_string(),
+            (true, true) => "The cauldron boils. Elemental air evaporates. Taint spreads.".to_string(),
         }
     }
 
     fn add(&mut self, ingredient: Ingredient) {
-        for (element, modifier, amount) in ingredient.elements {
-            match modifier {
-                Modifier::Strengthen => self.elements[element].power += amount.min(self.elements[element].power),
-                Modifier::Reduce => self.elements[element].power = (self.elements[element].power - amount).max(0),
-                Modifier::Stabilize => self.elements[element].stability += amount,
-                Modifier::Destabilize => self.elements[element].stability -= amount,
-                Modifier::Provide => self.elements[element].power += amount,
+        for (element, modifiers) in ingredient.elements {
+            for (modifier, amount) in modifiers {
+                self.elements[element][modifier] += ingredient.elements[element][modifier];
             }
         }
     }
 
-    fn occupies_bottle(&self) -> bool {
-        match self.kind {
-            PotionKind::Decoction | PotionKind::Infusion | PotionKind::Tincture | PotionKind::Oil | PotionKind::Salve | PotionKind::Poultice => true,
-            PotionKind::Smudge | PotionKind::Incense | PotionKind::Salt => false,
+    fn halve(&mut self) {
+        for (element, modifiers) in self.elements {
+            for (modifier, amount) in modifiers {
+                self.elements[element][modifier] = (self.elements[element][modifier] as f32 / 2.0).ceil() as i32;
+            }
+        }
+    }
+
+    fn apply(&mut self, ingredient: Ingredient) {
+        for (element, modifiers) in ingredient.elements {
+            for (modifier, amount) in modifiers {
+                let power = self.elements[element][Modifier::Provide];
+                match modifier {
+                    Modifier::Strengthen => self.elements[element][Modifier::Provide] = (power + amount.min(power)).max(0),
+                    Modifier::Stabilize => self.elements[element][Modifier::Stabilize]+= amount,
+                    Modifier::Provide => self.elements[element][Modifier::Provide] += amount,
+                }
+            }
         }
     }
 }
 
-impl fmt::Display for Work {
+impl fmt::Display for Ingredient {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: ", self.kind)?;
         let any = false;
-        for (element, status) in self.elements.iter().filter(|(_, s)| s.power != 0) {
+        for (element, status) in self.elements.iter().filter(|(_, s)| s[Modifier::Provide] != 0) {
             if any {
                 write!(f, ", ")?;
             }
-            write!(f, "{} {:?}", status.power, element)?; // TODO: Stability
+            write!(f, "{} {:?}", status[Modifier::Provide], element)?; // TODO: Stability
         }
         Ok(())
     }
@@ -192,8 +204,8 @@ struct World {
     pub locations: HashMap<&'static str, Location>,
     pub current_location: &'static str,
     pub total_bottles: i32,
-    pub brewed_works: Vec<Work>,
-    pub cauldron: Option<Work>,
+    pub brewed_works: Vec<Ingredient>,
+    pub cauldron: Option<Ingredient>,
 }
 
 impl World {
@@ -214,14 +226,14 @@ impl World {
     }
 
     fn brew(&mut self, params: &str) -> String {
-        if self.brewed_works.iter().filter(|&n| n.occupies_bottle()).count() as i32 >= self.total_bottles {
+        if self.brewed_works.iter().filter(|&n| n.kind.occupies_bottle()).count() as i32 >= self.total_bottles {
             return "You don't have an empty glass bottle. Buy more bottles, or use or sell your potions.".to_string();
         }
 
         match &self.cauldron {
             Some(work) => "brewing not yet implemented".to_string(),
             None => {
-                let work = Work::new_in_cauldron();
+                let work = CAULDRON_WATER.clone();
                 let descr = work.to_string();
                 self.cauldron = Some(work);
                 format!("You pour water into the cauldron.\n{}", descr)
