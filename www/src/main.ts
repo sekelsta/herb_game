@@ -44,9 +44,12 @@ function submitInput() {
   void runCommand(input).then(doOutput);
 }
 
-function doOutput(output: string): void {
-  // TODO: type gradually?
-  outputSpan.innerText = output;
+async function doOutput(output: string) {
+  // Output one line per second.
+  for (const char of output) {
+    outputSpan.innerText += char;
+    await new Promise((resolve) => setTimeout(resolve, 1000 / 80));
+  }
 
   prepareInput();
 }
