@@ -1,6 +1,6 @@
 import "./style.css";
 
-import init, { welcome } from "../wasm-build/herb_game";
+import init, { step, welcome } from "../wasm-build/herb_game";
 
 const terminal = document.getElementById("terminal") as HTMLDivElement;
 const terminalWrapper = document.getElementById(
@@ -107,8 +107,7 @@ function scrollToBottom() {
 // ----------
 
 async function runCommand(input: string): Promise<string> {
-  // TODO
-  return "You said: " + input;
+  return step(input);
 }
 
 // ----------

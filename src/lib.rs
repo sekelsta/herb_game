@@ -115,6 +115,7 @@ pub fn welcome() -> String {
     "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!".to_string()
 }
 
+#[wasm_bindgen]
 pub fn step(command: &str) -> String {
     // Not safe for multiple threads, but the program is already constrained to single-threaded for browser compatibility
     unsafe {
