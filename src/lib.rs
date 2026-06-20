@@ -9,7 +9,7 @@ use crate::alchemy::*;
 
 static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
-struct Location {
+pub struct Region {
     name: &'static str,
     description: &'static str,
     //paths:,
@@ -17,8 +17,8 @@ struct Location {
 }
 
 pub struct World {
-    pub locations: HashMap<&'static str, Location>,
-    pub current_location: &'static str,
+    pub regions: HashMap<&'static str, Region>,
+    pub current_region: &'static str,
     pub satchel: Vec<Ingredient>,
     pub empty_bottles: i32,
     pub infusion_shelf: Vec<Ingredient>,
@@ -27,15 +27,15 @@ pub struct World {
 
 impl World {
     pub fn new() -> Self {
-        let mut locations = HashMap::new();
-        locations.insert("hut", Location {
+        let mut regions = HashMap::new();
+        regions.insert("hut", Region {
             name: "Home Sweet Home",
             description: "A simple hut with a cauldron and rack of drying herbs in the back.",
         });
 
         World {
-            locations,
-            current_location: "hut",
+            regions,
+            current_region: "hut",
             empty_bottles: 4,
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
@@ -43,12 +43,18 @@ impl World {
         }
     }
 
+    fn has_cauldron(&self) -> bool {
+        return self.current_region == "hut";
+    }
+
     fn take_ingredient(&mut self, params: &str) -> Result<Ingredient, String> {
         if params == "" {
-            let c = self.cauldron.take();
-            return match c {
-                Some(ingredient) => Ok(ingredient),
-                None => Err("The cauldron is empty".to_string()),
+            if self.has_cauldron() {
+                let c = self.cauldron.take();
+                return match c {
+                    Some(ingredient) => Ok(ingredient),
+                    None => Err("The cauldron is empty".to_string()),
+                }
             }
         }
         // TODO: Remove and return specified ingredient from satchel
@@ -67,6 +73,15 @@ impl World {
                 ingredient.container = Container::Bottle;
                 Ok(result)
             }
+        }
+    }
+
+    fn stir(&mut self) -> String {
+        if self.has_cauldron() { match &mut self.cauldron {
+            Some(ingredient) => ingredient.boil(),
+            None => "The cauldron is empty.".to_string(),
+        }} else {
+            "You see nothing to stir.".to_string()
         }
     }
 
@@ -89,10 +104,13 @@ impl World {
     }
 
     fn decoct(&mut self, params: &str) -> String {
+        if !self.has_cauldron() {
+            return "You don't have the equipment to brew potions out here.".to_string();
+        }
         match &self.cauldron {
             Some(work) => "brewing not yet implemented".to_string(),
             None => {
-                let work = CAULDRON_WATER.clone();
+                let work = WATER.clone();
                 let descr = work.to_string();
                 self.cauldron = Some(work);
                 format!("You pour water into the cauldron.\n{}", descr)
@@ -101,8 +119,8 @@ impl World {
     }
 
     fn look(&mut self, params: &str) -> String {
-        let location = &self.locations[&self.current_location];
-        format!("{}\n{}", location.name, location.description)
+        let region = &self.regions[&self.current_region];
+        format!("{}\n{}", region.name, region.description)
     }
 
     fn help(&mut self, params: &str) -> String {
@@ -119,7 +137,7 @@ pub fn welcome() -> String {
 pub fn step(command: &str) -> String {
     // Not safe for multiple threads, but the program is already constrained to single-threaded for browser compatibility
     unsafe {
-        let mut world = &mut *(&raw mut WORLD);
+        let world = &mut *(&raw mut WORLD);
         let mut words = command.split_whitespace();
         let verb = match words.next() {
             Some(v) => v,
@@ -138,6 +156,7 @@ pub fn step(command: &str) -> String {
                     Err(e) => e,
                 }
             },
+            "stir" => world.stir(),
             "look" => world.look(&params),
             "help" => world.help(&params),
             _ => format!("You're not sure how to '{}'. Try 'help'.", verb),

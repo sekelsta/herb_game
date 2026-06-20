@@ -27,16 +27,10 @@ pub static DANDELION: Lazy<Ingredient> = Lazy::new(|| {
     Ingredient { solvent: Solvent::Air, container: Container::None, elements }
 });
 
-pub static CAULDRON_WATER: Lazy<Ingredient> = Lazy::new(|| {
-    let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-    elements[Element::Water][Modifier::Provide] = 4;
-    Ingredient { solvent: Solvent::Water, container: Container::None, elements }
-});
-
-pub static BOTTLED_WATER: Lazy<Ingredient> = Lazy::new(|| {
+pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Water][Modifier::Provide] = 2;
-    Ingredient { solvent: Solvent::Water, container: Container::Bottle, elements }
+    Ingredient { solvent: Solvent::Water, container: Container::None, elements }
 });
 
 #[derive(Clone, Copy, Debug, Enum, PartialEq)]
@@ -115,7 +109,7 @@ impl Ingredient {
         "water".to_string()
     }
 
-    fn boil(&mut self) -> String {
+    pub fn boil(&mut self) -> String {
         // One air evaporates, if present
         let air_evaporated = self.elements[Element::Air][Modifier::Provide] > 0;
         self.elements[Element::Air][Modifier::Provide] = (self.elements[Element::Air][Modifier::Provide] - 1).max(0);
