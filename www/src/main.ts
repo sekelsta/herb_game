@@ -44,11 +44,15 @@ function submitInput() {
   void runCommand(input).then(doOutput);
 }
 
-async function doOutput(output: string) {
-  // Output one line per second.
-  for (const char of output) {
-    outputSpan.innerText += char;
-    await new Promise((resolve) => setTimeout(resolve, 1000 / 80));
+async function doOutput(output: string, gradual = true) {
+  if (gradual) {
+    // Output one line per second.
+    for (const char of output) {
+      outputSpan.innerText += char;
+      await new Promise((resolve) => setTimeout(resolve, 1000 / 80));
+    }
+  } else {
+    outputSpan.innerText += output;
   }
 
   prepareInput();
@@ -96,5 +100,5 @@ async function runCommand(input: string): Promise<string> {
 // ----------
 
 prepareOutput();
-// TODO
-doOutput("Top text");
+// TODO: get from wasm
+doOutput("You are an herb in an herb forest.", false);

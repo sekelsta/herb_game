@@ -12,7 +12,7 @@ body {
   overflow: auto;
 
   /* Background color*/
-  animation: pulse 120s infinite;
+  animation: pulse 80s infinite;
 }
 
 @keyframes pulse {
