@@ -1,0 +1,1 @@
+favicon: https://openclipart.org/download/245369/potion-green.svg by Astro (Public Domain)
