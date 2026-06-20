@@ -85,4 +85,17 @@ body {
   .output {
     color: orange;
   }
+  .cursor {
+    user-select: none;
+    color: white;
+
+    opacity: 0;
+    animation: blink 1s step-start 0s infinite;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 1;
+  }
 }

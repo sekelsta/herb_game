@@ -11,13 +11,15 @@ const terminalWrapper = document.getElementById(
 
 let state: "input" | "output" = "output";
 let inputSpan = document.createElement("span");
+let cursorSpan: HTMLSpanElement | null = null;
 let outputSpan = document.createElement("span");
 
 function prepareInput() {
   const inputP = document.createElement("p");
   inputP.className = "input";
-  inputP.innerHTML = `<span class="prompt">&gt; </span><span class="input-span"></span>`;
+  inputP.innerHTML = `<span class="prompt">&gt; </span><span class="input-span"></span><span class="cursor">█</span>`;
   inputSpan = inputP.querySelector(".input-span")!;
+  cursorSpan = inputP.querySelector(".cursor")!;
   terminal.appendChild(inputP);
 
   scrollToBottom();
@@ -26,6 +28,8 @@ function prepareInput() {
 }
 
 function prepareOutput() {
+  cursorSpan?.remove();
+
   const outputP = document.createElement("p");
   outputP.className = "output";
   outputP.innerHTML = `<span class="output-span"></span>`;
@@ -75,11 +79,21 @@ terminalWrapper.onkeydown = (event) => {
 
 function setInputText(newInputText: string): void {
   inputSpan.innerText = newInputText;
+  resetCursorBlink();
   scrollToBottom();
 }
 
 function shouldType(e: KeyboardEvent): boolean {
   return e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
+}
+
+function resetCursorBlink(): void {
+  if (!cursorSpan) return;
+
+  cursorSpan.getAnimations().forEach((animation) => {
+    animation.cancel();
+    animation.play();
+  });
 }
 
 function scrollToBottom() {
