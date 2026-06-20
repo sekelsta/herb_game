@@ -1,63 +1,97 @@
 import "./style.css";
 
 const terminal = document.getElementById("terminal") as HTMLDivElement;
-
-// Focus the terminal when you click anywhere within its wrapper.
-const terminalWrapper = document.getElementById("terminal-wrapper")!;
-terminalWrapper.onclick = () => terminal.focus();
+const terminalWrapper = document.getElementById(
+  "terminal-wrapper",
+) as HTMLDivElement;
 
 // ----------
-// TERMINAL INPUT
+// TERMINAL I/O
 // ----------
 
-let textInputState: "input" | "output" = "input";
-let pendingInput = "";
+let state: "input" | "output" = "output";
+let inputSpan = document.createElement("span");
+let outputSpan = document.createElement("span");
 
-terminal.onkeydown = (event) => {
-  if (textInputState !== "input") return;
+function prepareInput() {
+  const inputP = document.createElement("p");
+  inputP.className = "input";
+  inputP.innerHTML = `<span class="prompt">&gt; </span><span class="input-span"></span>`;
+  inputSpan = inputP.querySelector(".input-span")!;
+  terminal.appendChild(inputP);
+
+  scrollToBottom();
+
+  state = "input";
+}
+
+function prepareOutput() {
+  const outputP = document.createElement("p");
+  outputP.className = "output";
+  outputP.innerHTML = `<span class="output-span"></span>`;
+  outputSpan = outputP.querySelector(".output-span")!;
+  terminal.appendChild(outputP);
+
+  scrollToBottom();
+
+  state = "output";
+}
+
+function submitInput() {
+  const input = inputSpan.innerText;
+  prepareOutput();
+
+  void runCommand(input).then(doOutput);
+}
+
+function doOutput(output: string): void {
+  // TODO: type gradually?
+  outputSpan.innerText = output;
+
+  prepareInput();
+}
+
+terminalWrapper.onkeydown = (event) => {
+  if (state !== "input") return;
+
+  const inputText = inputSpan.innerText;
 
   if (event.key === "Enter") {
-    void submitInput();
+    submitInput();
   } else if (event.key === "Backspace") {
-    if (pendingInput.length === 0) return;
-    updateInput(pendingInput.slice(0, -1));
+    if (inputText.length === 0) return;
+    setInputText(inputText.slice(0, -1));
   } else if (shouldType(event)) {
-    updateInput(pendingInput + event.key);
+    setInputText(inputText + event.key);
   }
 };
 
-async function submitInput() {
-  const input = pendingInput;
-  pendingInput = "";
-  terminal.innerText += "\n";
-  textInputState = "output";
-
-  const output = await processInput(input);
-  terminal.innerText += output + "\n> ";
-  textInputState = "input";
-}
-
-function updateInput(newInput: string): void {
-  terminal.innerText =
-    terminal.innerText.slice(
-      0,
-      terminal.innerText.length - pendingInput.length,
-    ) + newInput;
-  pendingInput = newInput;
+function setInputText(newInputText: string): void {
+  inputSpan.innerText = newInputText;
+  scrollToBottom();
 }
 
 function shouldType(e: KeyboardEvent): boolean {
   return e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey;
 }
 
-async function processInput(input: string): Promise<string> {
+function scrollToBottom() {
+  terminalWrapper.scrollTop = terminalWrapper.scrollHeight;
+}
+
+// ----------
+// RUN COMMAND IN RUST
+// ----------
+
+async function runCommand(input: string): Promise<string> {
   // TODO
   return "You said: " + input;
 }
 
 // ----------
-// INITIAL PROMPT
+// INITIAL SETUP
 // ----------
 
+prepareOutput();
 // TODO
-terminal.innerText = "Top text\n> ";
+doOutput("Top text");
