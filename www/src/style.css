@@ -66,6 +66,12 @@ body {
 
 #terminal {
   width: 80ch;
+  white-space: pre-wrap;
+  word-break: break-all;
 
   color: greenyellow;
+}
+
+#terminal:focus {
+  outline: none;
 }
