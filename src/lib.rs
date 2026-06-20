@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::{self, BufRead, Write};
+use wasm_bindgen::prelude::*;
 
 mod alchemy;
 
@@ -94,6 +95,7 @@ impl World {
     }
 }
 
+#[wasm_bindgen]
 pub fn welcome() -> String {
     "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!".to_string()
 }

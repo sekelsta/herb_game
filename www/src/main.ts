@@ -1,5 +1,7 @@
 import "./style.css";
 
+import init, { welcome } from "../wasm-build/herb_game";
+
 const terminal = document.getElementById("terminal") as HTMLDivElement;
 const terminalWrapper = document.getElementById(
   "terminal-wrapper",
@@ -114,5 +116,5 @@ async function runCommand(input: string): Promise<string> {
 // ----------
 
 prepareOutput();
-// TODO: get from wasm
-doOutput("You are an herb in an herb forest.", false);
+await init();
+doOutput(welcome(), false);
