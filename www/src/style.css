@@ -49,19 +49,23 @@ body {
 
   text-align: center;
   font-size: 64px;
+  user-select: none;
 }
 
 #terminal-wrapper {
   border-radius: 12px;
   padding: 12px;
+  overflow-y: scroll;
+
+  /* Set font-family here so we can specify height in ch. */
+  font-family: "Courier New", Courier, monospace;
+  height: calc(50ch + 2 * 12px);
 
   background-color: black;
 }
 
 #terminal {
-  height: 50ch;
   width: 80ch;
 
   color: greenyellow;
-  font-family: "Courier New", Courier, monospace;
 }
