@@ -69,7 +69,7 @@ body {
 #terminal {
   width: 80ch;
   white-space: pre-wrap;
-  word-break: break-all;
+  word-break: break-word;
 
   p {
     margin: 0;
