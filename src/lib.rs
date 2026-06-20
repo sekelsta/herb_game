@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use std::io::{self, BufRead, Write};
+use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 
@@ -9,16 +9,42 @@ use crate::alchemy::*;
 
 static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
+#[derive(Clone, Copy, Debug, Enum, PartialEq)]
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+    Northeast,
+    Northwest,
+    Southeast,
+    Southwest,
+}
+
+#[derive(Clone, Copy, Debug, Enum, PartialEq)]
+pub enum RegionEnum {
+    Hut,
+    Garden,
+    Village,
+    Field,
+    FriendlyForest,
+    WildflowerMeadow,
+    PineForest,
+    ForestRiver,
+    MeadowRiver,
+    //DragonMountain,
+}
+
 pub struct Region {
     name: &'static str,
     description: &'static str,
-    //paths:,
+    routes: EnumMap<Direction, RegionEnum>,
     //herbs:,
 }
 
 pub struct World {
-    pub regions: HashMap<&'static str, Region>,
-    pub current_region: &'static str,
+    pub regions: EnumMap<RegionEnum, Region>,
+    pub current_region: RegionEnum,
     pub satchel: Vec<Ingredient>,
     pub empty_bottles: i32,
     pub infusion_shelf: Vec<Ingredient>,
@@ -27,15 +53,103 @@ pub struct World {
 
 impl World {
     pub fn new() -> Self {
-        let mut regions = HashMap::new();
-        regions.insert("hut", Region {
-            name: "Home Sweet Home",
-            description: "A simple hut with a cauldron and rack of drying herbs in the back.",
-        });
+        use Direction::*;
+        use RegionEnum::*;
+        let regions = enum_map!(
+            Hut => Region {
+                name: "Home Sweet Home",
+                description: "A simple hut with a cauldron and rack of drying herbs in the back.",
+                routes: enum_map!(
+                    East => Garden,
+                    South | Southeast | Southwest | West => FriendlyForest,
+                    North | Northeast | Northwest => Village,
+                ),
+            },
+            Garden => Region {
+                name: "Your Garden",
+                description: "You can plant seeds here.",
+                routes: enum_map!(
+                    West => Hut,
+                    East | Northeast => PineForest,
+                    South | Southeast | Southwest => FriendlyForest,
+                    North | Northwest => Village,
+                ),
+            },
+            FriendlyForest => Region {
+                name: "Friendly Forest",
+                description: "Dapples of light filter though the soft leaves.",
+                routes: enum_map!(
+                    North => Hut,
+                    Northwest => Garden,
+                    South | Southeast | Southwest => ForestRiver,
+                    East => MeadowRiver,
+                    Northeast => WildflowerMeadow,
+                    West => PineForest,
+                ),
+            },
+            Village => Region {
+                name: "Village Square",
+                description: "You can buy or sell things here.",
+                routes: enum_map!(
+                    South => Hut,
+                    North | Northeast | Northwest => Field,
+                    East => WildflowerMeadow,
+                    Southeast => MeadowRiver,
+                    West | Southwest => PineForest,
+                ),
+            },
+            Field => Region {
+                name: "Weedy Field",
+                description: "An overgrown farm field. The farmer says you can have the weeds for free.",
+                routes: enum_map!(
+                    South | Southeast | Southwest => Village,
+                    East | Northeast | North => PineForest,
+                    West | Northwest => WildflowerMeadow,
+                ),
+            },
+            PineForest => Region {
+                name: "Pine Forest",
+                description: "Soft needles crackle beneath your feet.",
+                routes: enum_map!(
+                    East | Northeast => Field,
+                    South | Southeast => FriendlyForest,
+                    _ => PineForest,
+                ),
+            },
+            WildflowerMeadow => Region {
+                name: "Wildflower Meadow",
+                description: "Tall grass for haying, interrupted by colorful flowers.",
+                routes: enum_map!(
+                    West | Southwest => Field,
+                    South | Southeast | East => MeadowRiver,
+                    _ => WildflowerMeadow,
+                ),
+            },
+            MeadowRiver => Region {
+                name: "Meadow Riverbank",
+                description: "A river flows beside the meadow, the bright sun sparkling off its waters.",
+                routes: enum_map!(
+                    North => WildflowerMeadow,
+                    Northwest => Village,
+                    West => FriendlyForest,
+                    South | Southwest => ForestRiver,
+                    _ => MeadowRiver,
+                ),
+            },
+            ForestRiver => Region {
+                name: "Forest Riverbank",
+                description: "A river flows through the forest.",
+                routes: enum_map!(
+                    North | Northwest | West => FriendlyForest,
+                    Northeast | East => MeadowRiver,
+                    _ => ForestRiver,
+                ),
+            },
+        );
 
         World {
             regions,
-            current_region: "hut",
+            current_region: Hut,
             empty_bottles: 4,
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
@@ -44,7 +158,7 @@ impl World {
     }
 
     fn has_cauldron(&self) -> bool {
-        return self.current_region == "hut";
+        return self.current_region == RegionEnum::Hut;
     }
 
     fn take_ingredient(&mut self, params: &str) -> Result<Ingredient, String> {
@@ -119,7 +233,7 @@ impl World {
     }
 
     fn look(&mut self, params: &str) -> String {
-        let region = &self.regions[&self.current_region];
+        let region = &self.regions[self.current_region];
         format!("{}\n{}", region.name, region.description)
     }
 
