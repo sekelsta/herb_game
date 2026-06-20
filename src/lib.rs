@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use std::io::{self, BufRead, Write};
+use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 
 mod alchemy;
 
 use crate::alchemy::*;
+
+static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
 struct Location {
     name: &'static str,
@@ -40,19 +43,31 @@ impl World {
         }
     }
 
-    //fn get_ingredient(&self, params: &str) -> Result<&mut Ingredient, String> {
-        // TODO: Return specified ingredient from satchel or cauldron
-        //Err("You have no such ingredient".to_string())
-    //}
+    fn take_ingredient(&mut self, params: &str) -> Result<Ingredient, String> {
+        if params == "" {
+            let c = self.cauldron.take();
+            return match c {
+                Some(ingredient) => Ok(ingredient),
+                None => Err("The cauldron is empty".to_string()),
+            }
+        }
+        // TODO: Remove and return specified ingredient from satchel
+        Err("You have no such ingredient.".to_string())
+    }
 
     fn bottle(&mut self, ingredient: &mut Ingredient) -> Result<String, String> {
-        if self.empty_bottles <= 0 {
-            return Err("You don't have an empty glass bottle. Buy more bottles, or use or sell your potions.".to_string());
+        match ingredient.container {
+            Container::Bottle => Err(format!("The {} is already bottled.", ingredient.name())),
+            Container::None => {
+                if self.empty_bottles <= 0 {
+                    return Err("You don't have an empty glass bottle. Buy more bottles, or use or sell your potions.".to_string());
+                }
+                self.empty_bottles -= 1;
+                let result = format!("You put the {} into a clean bottle.", ingredient.name());
+                ingredient.container = Container::Bottle;
+                Ok(result)
+            }
         }
-        self.empty_bottles -= 1;
-        let result = format!("You put the {} into a clean bottle.", ingredient.name());
-        ingredient.container = Container::Bottle;
-        Ok(result)
     }
 
     fn infuse(&mut self, base: &mut Ingredient, addition: &mut Ingredient) -> String {
@@ -100,18 +115,31 @@ pub fn welcome() -> String {
     "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!".to_string()
 }
 
-pub fn step(world: &mut World, command: &str) -> String {
-    let mut words = command.split_whitespace();
-    let verb = match words.next() {
-        Some(v) => v,
-        None => return "".to_string(),
-    };
-    let params = words.collect::<Vec<&str>>().join(" ");
-    match verb {
-        "brew" => world.decoct(&params),
-        //"bottle" => world.get_ingredient(&params).map_or_else(|e| e, |i| world.bottle(&mut i).unwrap()),
-        "look" => world.look(&params),
-        "help" => world.help(&params),
-        _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
+pub fn step(command: &str) -> String {
+    // Not safe for multiple threads, but the program is already constrained to single-threaded for browser compatibility
+    unsafe {
+        let mut world = &mut *(&raw mut WORLD);
+        let mut words = command.split_whitespace();
+        let verb = match words.next() {
+            Some(v) => v,
+            None => return "".to_string(),
+        };
+        let params = words.collect::<Vec<&str>>().join(" ");
+        match verb {
+            "brew" => world.decoct(&params),
+            "bottle" => {
+                match world.take_ingredient(&params) {
+                    Ok(mut i) => {
+                        let result = world.bottle(&mut i);
+                        world.satchel.push(i);
+                        result.unwrap_or_else(|e| e)
+                    }
+                    Err(e) => e,
+                }
+            },
+            "look" => world.look(&params),
+            "help" => world.help(&params),
+            _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
+        }
     }
 }
