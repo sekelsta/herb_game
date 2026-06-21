@@ -76,6 +76,14 @@ pub struct Region {
     possible_herbs: Vec<&'static Ingredient>,
 }
 
+impl Region {
+    fn regrow(&mut self) {
+        for &h in &self.possible_herbs {
+            self.current_herbs.push(h.clone())
+        }
+    }
+}
+
 pub struct World {
     pub regions: EnumMap<RegionEnum, Region>,
     pub current_region: RegionEnum,
@@ -349,6 +357,9 @@ impl World {
         let herb_changes = self.satchel.iter_mut().filter_map(|i| i.advance_time()).collect::<Vec<String>>().join("\n");
         let infused = self.infusion_shelf.len();
         self.satchel.append(&mut self.infusion_shelf);
+        for region in self.regions.values_mut() {
+            region.regrow();
+        }
         match (herb_changes.as_str(), infused > 0) {
             ("", true) => format!("Completed {} infusions.", infused),
             (_, true) => format!("{0}\nCompleted {1} infusions.", herb_changes, infused),
