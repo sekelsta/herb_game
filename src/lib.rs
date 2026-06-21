@@ -294,7 +294,7 @@ impl World {
 
     fn stir(&mut self) -> String {
         if self.has_cauldron() { match &mut self.cauldron {
-            Some(ingredient) => ingredient.boil(),
+            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(), ingredient.to_string()),
             None => "The cauldron is empty.".to_string(),
         }} else {
             "You see nothing to stir.".to_string()
@@ -345,6 +345,18 @@ impl World {
         result
     }
 
+    fn advance_time(&mut self) -> String {
+        let herb_changes = self.satchel.iter_mut().filter_map(|i| i.advance_time()).collect::<Vec<String>>().join("\n");
+        let infused = self.infusion_shelf.len();
+        self.satchel.append(&mut self.infusion_shelf);
+        match (herb_changes.as_str(), infused > 0) {
+            ("", true) => format!("Completed {} infusions.", infused),
+            (_, true) => format!("{0}\nCompleted {1} infusions.", herb_changes, infused),
+            ("", false) => "You wake refreshed.".to_string(),
+            (_, false) => herb_changes,
+        }
+    }
+
     fn look(&mut self) -> String {
         let region = &self.regions[self.current_region];
         format!("{}\n{}", region.name, region.description)
@@ -352,9 +364,11 @@ impl World {
 
     fn help(&mut self) -> String {
 "TODO - potion making instructions
+sleep - advances time, allowing herbs to grow, infusions to infuse, and fresh herbs to dry out
 north, south, east, west, [location name] - travel
 inv or satchel - list items inside your satchel
 brew [ingredient] - add the ingredient to the cauldron
+stir - stir the cauldron as it boils, allowing lighter elements to evaporate
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 dump - empty out the cauldron and get rid of the contents
 map - display a map of the area
@@ -389,6 +403,7 @@ pub fn step(command: &str) -> String {
         let params = words.collect::<Vec<&str>>().join(" ");
         match verb {
             "go"|"travel"|"to"|"the" => step(&params),
+            "wait"|"advance"|"sleep" => world.advance_time(),
             "inv"|"inventory"|"satchel" => world.list_satchel(),
             "brew"|"decoct"|"cauldron" => {
                 if params == "" {

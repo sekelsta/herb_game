@@ -41,6 +41,12 @@ pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
     Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default() }
 });
+pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
+    let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
+    elements[Element::Taint][Modifier::Provide] = 4;
+    elements[Element::Taint][Modifier::Stabilize] = 4;
+    Ingredient { name: "rot", solvent: Solvent::Water, container: Container::Bottle, elements }
+});
 
 #[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
 pub enum Element {
@@ -207,13 +213,21 @@ impl Ingredient {
         }
     }
 
-    pub fn advance_time(&mut self) {
+    pub fn advance_time(&mut self) -> Option<String> {
+        let old_name = self.full_name();
         // Water or alcohol evaporate without a container
-        if self.container == Container::None {
-            match &self.solvent {
-                Solvent::Water | Solvent::Ether => self.solvent = Solvent::Air,
-                _ => (),
-            }
+        match self.container {
+            Container::None => match &self.solvent {
+                Solvent::Water | Solvent::Ether | Solvent::Vivo => {
+                    self.solvent = Solvent::Air;
+                    Some(format!("{0} dried into {1}", old_name, self.full_name()))
+                }
+                _ => None,
+            },
+            Container::Bottle => if let Solvent::Vivo = self.solvent {
+                *self = ROT.clone();
+                Some(format!("{} rotted", old_name))
+            } else { None }
         }
     }
 }
