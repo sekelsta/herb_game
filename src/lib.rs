@@ -257,6 +257,10 @@ impl World {
         return self.current_region == RegionEnum::Hut;
     }
 
+    fn list_inventory(&self) -> String {
+        format!("{0}\nEmpty glass bottles: {1}", self.list_satchel(), self.empty_bottles)
+    }
+
     fn list_satchel(&self) -> String {
         self.satchel.iter().map(|i| i.inventory_view()).collect::<Vec<String>>().join("\n")
     }
@@ -291,9 +295,9 @@ impl World {
             return Ok(self.unlimited_ingredients[pos].clone());
         }
         if let Some(pos) = self.infusion_shelf.iter().position(|x| x.full_name() == params) {
-            return Err("Wait for that to finish infusing first.".to_string()) 
+            return Err("Wait for that to finish infusing first.".to_string())
         }
-        Err(format!("You have no such ingredient: {}", params)) 
+        Err(format!("You have no such ingredient: {}", params))
     }
 
     fn bottle(&mut self, ingredient: &mut Ingredient) -> Result<String, String> {
@@ -323,6 +327,31 @@ impl World {
             },
             None => "The cauldron is already empty".to_string(),
         }
+    }
+
+    fn dump(&mut self, params: &str) -> String {
+        if params == "" {
+            return self.dump_cauldron();
+        }
+        if let Some(pos) = self.satchel.iter().position(|x| x.container == Container::Bottle && x.matches_name(params)) {
+            let mut bottled = self.satchel.remove(pos);
+            self.empty_bottles += 1;
+            return match bottled.solvent {
+                Solvent::Vivo | Solvent:: Air => {
+                    bottled.container = Container::None;
+                    let result = format!("Unbottled {}.", bottled.full_name());
+                    self.satchel.push(bottled);
+                    result
+                }
+                _ => format!("Discarded {} and washed bottle.", bottled.full_name())
+            }
+        }
+        if let Some(pos) = self.infusion_shelf.iter().position(|x| x.container == Container::Bottle && x.full_name() == params) {
+            let mut bottled = self.infusion_shelf.remove(pos);
+            self.empty_bottles += 1;
+            return format!("Discarded infusing {}.", bottled.full_name())
+        }
+        return "You can't find anything to dump.".to_string();
     }
 
     fn stir(&mut self) -> String {
@@ -404,7 +433,7 @@ fn help() -> String {
 "TODO - potion making instructions
 sleep - advances time, allowing herbs to grow, infusions to infuse, and fresh herbs to dry out
 north, south, east, west, [location name] - travel
-gather [herb] - look for an herb, or if not specified hunt for any available herb in your current region
+gather or forage - search for herbs in your current region, with priority for a specific herb if you name one
 inv or satchel - list items inside your satchel
 brew [ingredient] - add the ingredient to the cauldron
 stir - stir the cauldron as it boils, allowing lighter elements to evaporate
@@ -442,7 +471,7 @@ pub fn step(command: &str) -> String {
         match verb {
             "go"|"travel"|"to"|"the" => step(&params),
             "wait"|"advance"|"sleep" => world.advance_time(),
-            "inv"|"inventory"|"satchel" => world.list_satchel(),
+            "inv"|"inventory"|"satchel" => world.list_inventory(),
             "gather"|"forage"|"collect" => world.forage(&params),
             "brew"|"decoct"|"cauldron" => {
                 if params == "" {
@@ -464,7 +493,7 @@ pub fn step(command: &str) -> String {
                     Err(e) => e,
                 }
             },
-            "dump"|"spill" => world.dump_cauldron(),
+            "dump"|"spill"|"empty" => world.dump(&params),
             "stir" => world.stir(),
             "map" | "surroundings" => MAP.to_string(),
             "look" => world.look(),
