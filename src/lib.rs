@@ -361,8 +361,10 @@ impl World {
         let region = &self.regions[self.current_region];
         format!("{}\n{}", region.name, region.description)
     }
+}
 
-    fn help(&mut self) -> String {
+
+fn help() -> String {
 "TODO - potion making instructions
 sleep - advances time, allowing herbs to grow, infusions to infuse, and fresh herbs to dry out
 north, south, east, west, [location name] - travel
@@ -374,7 +376,6 @@ dump - empty out the cauldron and get rid of the contents
 map - display a map of the area
 look - describe your current location
 help - print this info".to_string()
-    }
 }
 
 #[wasm_bindgen]
@@ -429,7 +430,7 @@ pub fn step(command: &str) -> String {
             "stir" => world.stir(),
             "map" | "surroundings" => MAP.to_string(),
             "look" => world.look(),
-            "help" => world.help(),
+            "help" => help(),
             _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
         }
     }
