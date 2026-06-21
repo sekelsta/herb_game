@@ -46,15 +46,21 @@ enum Direction {
 }
 
 #[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
+#[strum(ascii_case_insensitive)]
 pub enum RegionEnum {
     Hut,
     Garden,
     Village,
     Field,
+    #[strum(serialize = "friendly forest", serialize = "forest")]
     FriendlyForest,
+    #[strum(serialize = "wildflower meadow", serialize = "meadow")]
     WildflowerMeadow,
+    #[strum(serialize = "pine forest", serialize = "pines")]
     PineForest,
+    #[strum(serialize = "forest river")]
     ForestRiver,
+    #[strum(serialize = "meadow river")]
     MeadowRiver,
     //DragonMountain,
 }
@@ -191,6 +197,17 @@ impl World {
         }
     }
 
+    fn travel_to(&mut self, region: RegionEnum) -> String {
+        if region == self.current_region {
+            "You're already here.".to_string()
+        } else if self.regions[self.current_region].routes.values().any(|r| *r == region) {
+            self.current_region = region;
+            self.look()
+        } else {
+            "That's not nearby.".to_string()
+        }
+    }
+
     fn has_cauldron(&self) -> bool {
         return self.current_region == RegionEnum::Hut;
     }
@@ -295,9 +312,13 @@ pub fn step(command: &str) -> String {
             Ok(direction) => return world.travel_cardinal(direction),
             Err(_) => (),
         };
+        match RegionEnum::from_str(command) {
+            Ok(region) => return world.travel_to(region),
+            Err(_) => (),
+        };
         let params = words.collect::<Vec<&str>>().join(" ");
         match verb {
-            "go"|"travel" => step(&params),
+            "go"|"travel"|"to"|"the" => step(&params),
             "brew" => world.decoct(&params),
             "bottle" => {
                 match world.take_ingredient(&params) {
