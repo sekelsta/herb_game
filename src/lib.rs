@@ -10,7 +10,8 @@ use crate::alchemy::*;
 
 static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
-const MAP: &str = r#"PPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwwww
+const MAP: &str = r#"Surroundings:
+PPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwwww
 PPPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwww
 PPPPPPPPPP----x---------wwwwwwwwwwww
 PPPPPPPPPP----------x---wwwwwwwwwwww
@@ -49,7 +50,9 @@ enum Direction {
 pub enum RegionEnum {
     Hut,
     Garden,
+    #[strum(serialize = "village square", serialize = "village", serialize = "market")]
     Village,
+    #[strum(serialize = "weedy field", serialize = "field", serialize = "overgrown field")]
     Field,
     #[strum(serialize = "friendly forest", serialize = "forest")]
     FriendlyForest,
@@ -61,7 +64,6 @@ pub enum RegionEnum {
     ForestRiver,
     #[strum(serialize = "meadow river")]
     MeadowRiver,
-    //DragonMountain,
 }
 
 pub struct Region {
@@ -307,13 +309,17 @@ impl World {
     }
 
     fn help(&mut self) -> String {
-        "help text not yet implemented".to_string()
+"TODO - potion making instructions
+north, south, east, west, [location name] - travel
+map - display a map of the area
+look - describe your current location
+help - print this info".to_string()
     }
 }
 
 #[wasm_bindgen]
 pub fn welcome() -> String {
-    format!("The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!\nSurroundings:\n{}", MAP)
+    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!".to_string()
 }
 
 #[wasm_bindgen]
