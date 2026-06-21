@@ -1,4 +1,3 @@
-use std::io::{self, BufRead, Write};
 use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
 use std::str::FromStr;
@@ -122,7 +121,7 @@ impl World {
                     West => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
+                possible_herbs: vec!(&*NEW_YORK_FERN, &*VIOLET, &*JACK_IN_THE_PULPIT, &*BLUEBELL, &*TROUT_LILY, &*WILD_STRAWBERRY, &*ENCHANTERS_NIGHTSHADE),
             },
             Village => Region {
                 name: "Village Square",
@@ -146,7 +145,7 @@ impl World {
                     West | Northwest => WildflowerMeadow,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*DANDELION),
+                possible_herbs: vec!(&*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER, &*VELVETLEAF, &*HORSETAIL, &*HEALALL, &*YARROW, &*FLEABANE, &*BLACK_NIGHTSHADE),
             },
             PineForest => Region {
                 name: "Pine Forest",
@@ -157,7 +156,7 @@ impl World {
                     _ => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
+                possible_herbs: vec!(&*VIOLET, &*DAFFODIL, &*COLUMBINE, &*WHITE_TRILLIUM, &*LADY_FERN, &*WINTERGREEN, &*YEW, &*DEADLY_NIGHTSHADE),
             },
             WildflowerMeadow => Region {
                 name: "Wildflower Meadow",
@@ -168,7 +167,7 @@ impl World {
                     _ => WildflowerMeadow,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*DANDELION),
+                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*HEALALL, &*SWEET_ANNIE, &*YARROW, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*FEVERFEW, &*CHAMOMILE, &*BORAGE),
             },
             MeadowRiver => Region {
                 name: "Meadow Riverbank",
@@ -181,7 +180,7 @@ impl World {
                     _ => MeadowRiver,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*DANDELION),
+                possible_herbs: vec!(&*WATERMINT, &*TURTLEHEAD, &*JOE_PYE, &*MEADOW_ANEMONE, &*HORSETAIL, &*COLTSFOOT, &*WILLOW, &*MARSH_MALLOW),
             },
             ForestRiver => Region {
                 name: "Forest Riverbank",
@@ -192,7 +191,7 @@ impl World {
                     _ => ForestRiver,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
+                possible_herbs: vec!(&*JEWELWEED, &*FOX_SEDGE, &*SKUNK_CABBAGE, &*CINNAMON_FERN, &*MEADOWSWEET, &*SPOTTED_DEADNETTLE, &*COLTSFOOT),
             },
         );
 
