@@ -273,6 +273,20 @@ impl World {
         }
     }
 
+    fn dump_cauldron(&mut self) -> String {
+        if !self.has_cauldron() {
+            return "There's no cauldron to dump here.".to_string();
+        }
+        match &self.cauldron {
+            Some(work) => {
+                let descr = work.to_string();
+                self.cauldron = None;
+                format!("Dumped from cauldron: {}", descr)
+            },
+            None => "The cauldron is already empty".to_string(),
+        }
+    }
+
     fn stir(&mut self) -> String {
         if self.has_cauldron() { match &mut self.cauldron {
             Some(ingredient) => ingredient.boil(),
@@ -326,6 +340,7 @@ impl World {
 north, south, east, west, [location name] - travel
 inv or satchel - list items inside your satchel
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
+dump - empty out the cauldron and get rid of the contents
 map - display a map of the area
 look - describe your current location
 help - print this info".to_string()
@@ -359,7 +374,7 @@ pub fn step(command: &str) -> String {
         match verb {
             "go"|"travel"|"to"|"the" => step(&params),
             "inv"|"inventory"|"satchel" => world.list_satchel(),
-            "brew"|"decoct" => world.decoct(&params),
+            "brew"|"decoct"|"cauldron" => world.decoct(&params),
             "bottle" => {
                 match world.take_ingredient(&params) {
                     Ok(mut i) => {
@@ -370,6 +385,7 @@ pub fn step(command: &str) -> String {
                     Err(e) => e,
                 }
             },
+            "dump"|"spill" => world.dump_cauldron(),
             "stir" => world.stir(),
             "map" | "surroundings" => MAP.to_string(),
             "look" => world.look(),
