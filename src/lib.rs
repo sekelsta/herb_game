@@ -1,5 +1,6 @@
 use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
+use rand::Rng;
 use std::str::FromStr;
 use strum_macros::EnumString;
 use wasm_bindgen::prelude::*;
@@ -78,8 +79,18 @@ pub struct Region {
 
 impl Region {
     fn regrow(&mut self) {
+        for i in (0..self.current_herbs.len()).rev() {
+            if rand::random_bool(0.5) {
+                self.current_herbs.remove(i);
+            }
+        }
         for &h in &self.possible_herbs {
-            self.current_herbs.push(h.clone())
+            if rand::random_bool(0.1) {
+                self.current_herbs.push(h.clone());
+            }
+            if rand::random_bool(0.1) {
+                self.current_herbs.push(h.clone());
+            }
         }
     }
 }
