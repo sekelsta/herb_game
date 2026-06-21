@@ -94,6 +94,7 @@ impl Region {
                 self.current_herbs.push(h.clone());
             }
         }
+        // TODO: Shuffle so herbs are not always found in the same order
     }
 }
 
@@ -147,7 +148,7 @@ impl World {
                     West => FriendlyForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*NEW_YORK_FERN, &*VIOLET, &*JACK_IN_THE_PULPIT, &*BLUEBELL, &*TROUT_LILY, &*WILD_STRAWBERRY, &*ENCHANTERS_NIGHTSHADE, &*BURDOCK),
+                possible_herbs: vec!(&*VIOLET, &*ENCHANTERS_NIGHTSHADE, &*BLUEBELL),// &*JACK_IN_THE_PULPIT, &*TROUT_LILY, &*WILD_STRAWBERRY, &*NEW_YORK_FERN, &*BURDOCK),
             },
             Village => Region {
                 name: "Village Square",
@@ -171,7 +172,7 @@ impl World {
                     West | Northwest => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER, &*VELVETLEAF, &*HORSETAIL, &*HEALALL, &*YARROW, &*FLEABANE, &*BLACK_NIGHTSHADE),
+                possible_herbs: vec!(&*HORSETAIL, &*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER),// &*VELVETLEAF, &*HEALALL, &*YARROW, &*FLEABANE, &*BLACK_NIGHTSHADE, &*BITTERSWEET),
             },
             PineForest => Region {
                 name: "Pine Forest",
@@ -182,7 +183,7 @@ impl World {
                     _ => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*VIOLET, &*DAFFODIL, &*COLUMBINE, &*WHITE_TRILLIUM, &*LADY_FERN, &*WINTERGREEN, &*YEW, &*DEADLY_NIGHTSHADE),
+                possible_herbs: vec!(&*VIOLET, &*COLUMBINE, &*DAFFODIL, &*WINTERGREEN),// &*WHITE_TRILLIUM, &*LADY_FERN, &*YEW, &*DEADLY_NIGHTSHADE),
             },
             WildflowerMeadow => Region {
                 name: "Wildflower Meadow",
@@ -193,7 +194,7 @@ impl World {
                     _ => WildflowerMeadow,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*HEALALL, &*SWEET_ANNIE, &*YARROW, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*FEVERFEW, &*CHAMOMILE, &*BORAGE, &*YELLOW_DOCK),
+                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*FEVERFEW),// &*HEALALL, &*SWEET_ANNIE, &*YARROW, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*CHAMOMILE, &*BORAGE, &*YELLOW_DOCK),
             },
             MeadowRiver => Region {
                 name: "Meadow Riverbank",
@@ -206,7 +207,7 @@ impl World {
                     _ => MeadowRiver,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*WATERMINT, &*TURTLEHEAD, &*JOE_PYE, &*MEADOW_ANEMONE, &*HORSETAIL, &*COLTSFOOT, &*WILLOW, &*MARSH_MALLOW),
+                possible_herbs: vec!(&*WATERMINT, &*HORSETAIL, &*COLTSFOOT),// &*TURTLEHEAD, &*JOE_PYE, &*MEADOW_ANEMONE, &*WILLOW, &*MARSH_MALLOW),
             },
             ForestRiver => Region {
                 name: "Forest Riverbank",
@@ -217,7 +218,7 @@ impl World {
                     _ => ForestRiver,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*JEWELWEED, &*FOX_SEDGE, &*SKUNK_CABBAGE, &*CINNAMON_FERN, &*MEADOWSWEET, &*SPOTTED_DEADNETTLE, &*COLTSFOOT),
+                possible_herbs: vec!(&*JEWELWEED, &*SPOTTED_DEADNETTLE, &*COLTSFOOT, &*FOX_SEDGE, &*SKUNK_CABBAGE),// &*CINNAMON_FERN, &*MEADOWSWEET),
             },
         );
 
@@ -303,6 +304,9 @@ impl World {
     }
 
     fn bottle_named(&mut self, params: &str) -> String {
+        if params == "bottle" {
+            return "Nice try. You can't fit a bottle inside a bottle.".to_string();
+        }
         match self.take_ingredient(&params, |ingr: &Ingredient| ingr.container == Container::None) {
             Ok(mut ingr) => {
                 let result = self.bottle(&mut ingr);
@@ -334,7 +338,7 @@ impl World {
         }
         match &self.cauldron {
             Some(work) => {
-                let descr = work.to_string();
+                let descr = work.show_in_progress();
                 self.cauldron = None;
                 format!("Dumped from cauldron: {}", descr)
             },
@@ -369,24 +373,25 @@ impl World {
 
     fn stir(&mut self) -> String {
         if self.has_cauldron() { match &mut self.cauldron {
-            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(), ingredient.to_string()),
+            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(), ingredient.show_in_progress()),
             None => "The cauldron is empty.".to_string(),
         }} else {
             "You see nothing to stir.".to_string()
         }
     }
 
-    fn fill_cauldron(&mut self) -> String {
+    fn fill_cauldron(&mut self, ingredient: &Ingredient) -> String {
         if !self.has_cauldron() {
             return "You don't have the equipment to brew potions out here.".to_string();
         }
         match &self.cauldron {
             Some(_) => "Specify an ingredient.".to_string(),
             None => {
-                let work = WATER.clone();
-                let descr = work.to_string();
-                let name = work.full_name();
-                self.cauldron = Some(work);
+                let mut ingredient = ingredient.clone();
+                ingredient.container = Container::None;
+                let descr = ingredient.show_in_progress();
+                let name = ingredient.full_name();
+                self.cauldron = Some(ingredient);
                 format!("You pour {0} into the cauldron and bring it to a boil.\n{1}", name, descr)
             }
         }
@@ -396,10 +401,21 @@ impl World {
         if !self.has_cauldron() {
             return "You don't have the equipment to brew potions out here.".to_string();
         }
-        if self.cauldron.is_none() {
-            self.fill_cauldron();
+        if addition.container == Container::Bottle {
+            self.empty_bottles += 1;
         }
-        self.cauldron.as_mut().unwrap().decoct(&addition)
+        let mut added: Option<&str> = None;
+        if self.cauldron.is_none() {
+            if let Solvent::Water | Solvent::Ether | Solvent::Oil = addition.solvent {
+                return self.fill_cauldron(&addition);
+            }
+            let added = Some(self.fill_cauldron(&WATER));
+        }
+        let decocted = self.cauldron.as_mut().unwrap().decoct(&addition);
+        match added {
+            Some(added) => format!("{}\n{}", added, decocted),
+            None => decocted,
+        }
     }
 
     fn infuse_named(&mut self, params: &str) -> String {
@@ -519,7 +535,7 @@ pub fn step(command: &str) -> String {
             "gather"|"forage"|"collect" => world.forage(&params),
             "brew"|"decoct"|"cauldron" => {
                 if params == "" {
-                    world.fill_cauldron()
+                    world.fill_cauldron(&WATER)
                 } else {
                     match world.take_ingredient(&params, |_| true) {
                         Ok(ingr) => world.decoct(ingr),

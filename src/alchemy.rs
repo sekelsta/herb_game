@@ -31,22 +31,30 @@ const EVAPORABLE_ELEMENTS: [Element; 7] = [
 pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Water][Modifier::Provide] = 4;
-    Ingredient { name: "water", solvent: Solvent::Water, container: Container::None, elements }
+    Ingredient { name: "water", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Spirit][Modifier::Provide] = 4;
-    Ingredient { name: "spirits", solvent: Solvent::Ether, container: Container::None, elements }
+    Ingredient { name: "spirits", solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
-    Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default() }
+    Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Taint][Modifier::Provide] = 4;
     elements[Element::Taint][Modifier::Stabilize] = 4;
-    Ingredient { name: "rot", solvent: Solvent::Water, container: Container::Bottle, elements }
+    Ingredient { name: "rot", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
+
+pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 1] = [
+    Lazy::new(|| {
+        let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
+        elements[Element::Taint][Modifier::Provide] = 4;
+        Ingredient { name: "potion of testing", solvent: Solvent::Water, container: Container::Bottle, elements, toxicity: 0.0, effect: Some(Effect::CoughRemedy), strength: 1.0, }
+    })
+];
 
 #[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
 pub enum Element {
@@ -123,15 +131,37 @@ impl fmt::Display for IngredientKind {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum Effect {
+    CoughRemedy,
+}
+
 #[derive(Clone, Debug)]
 pub struct Ingredient {
     pub name: &'static str,
     pub solvent: Solvent,
     pub container: Container,
     pub elements: EnumMap<Element, EnumMap<Modifier, i32>>,
+    pub effect: Option<Effect>,
+    pub strength: f32,
+    pub toxicity: f32,
 }
 
 impl Ingredient {
+    pub fn new_herb(name: &'static str, toxicity: f32, f: impl Fn(&mut EnumMap<Element, EnumMap<Modifier, i32>>)) -> Self {
+        let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
+        f(&mut elements);
+        Self {
+            name,
+            solvent: Solvent::Vivo,
+            container: Container::None,
+            elements,
+            effect: None,
+            strength: 0.0,
+            toxicity,
+        }
+    }
+
     pub fn full_name(&self) -> String {
         let name = match self.solvent {
             Solvent::Air => format!("dry {}", self.name),
@@ -172,6 +202,10 @@ impl Ingredient {
         } else {
             "Inert".to_string()
         }
+    }
+
+    pub fn show_in_progress(&self) -> String {
+        format!("{:?} base: {}. Effect: {:?} ({}% strength)", self.solvent, self.display_elements(), self.effect, self.strength * 100.0)
     }
 
     pub fn matches_name(&self, needle: &str) -> bool {
@@ -223,6 +257,7 @@ impl Ingredient {
                 taint_spread = true;
             }
         }
+        self.update_effect();
         match (taint_spread, evaporated) {
             (false, None) => "The cauldron boils.".to_string(),
             (false, Some(e)) => format!("The cauldron boils. Elemental {} evaporates.", e.to_string().to_lowercase()),
@@ -232,7 +267,7 @@ impl Ingredient {
     }
 
     pub fn decoct(&mut self, addition: &Ingredient) -> String {
-        format!("{}\n{}", self.boil(), { self.apply(addition); self.to_string() })
+        format!("{}\n{}", self.boil(), { self.apply(addition); self.show_in_progress() })
     }
 
     pub fn infuse(&mut self, addition: &Ingredient) -> String {
@@ -241,15 +276,17 @@ impl Ingredient {
         ingredient.discard_insoluble(&self.solvent);
         ingredient.halve();
         self.add(&ingredient);
-        self.to_string()
+        self.show_in_progress()
     }
 
     pub fn add(&mut self, ingredient: &Ingredient) {
+        self.toxicity += ingredient.toxicity;
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
                 self.elements[element][modifier] += amount;
             }
         }
+        self.update_effect();
     }
 
     pub fn halve(&mut self) {
@@ -277,6 +314,7 @@ impl Ingredient {
     }
 
     pub fn apply(&mut self, ingredient: &Ingredient) {
+        self.toxicity += ingredient.toxicity;
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
                 let power = self.elements[element][Modifier::Provide];
@@ -287,6 +325,37 @@ impl Ingredient {
                 }
             }
         }
+        self.update_effect();
+    }
+
+    pub fn update_effect(&mut self) {
+        for potion in &REFERENCE_POTIONS {
+            let effectiveness = self.calc_strength(&potion);
+            if effectiveness > self.strength {
+                self.strength = effectiveness;
+                self.effect = potion.effect;
+                self.name = potion.name;
+            }
+        }
+    }
+
+    pub fn calc_strength(&self, reference: &Ingredient) -> f32 {
+        let mut ref_total = 0;
+        let mut ratio: f32 = 10.0; // Max strength before being more concentrated starts counting against you even in the correct ratio
+        for (element, modifiers) in reference.elements {
+            let theirs = modifiers[Modifier::Provide];
+            let ours = self.elements[element][Modifier::Provide];
+            if theirs > ours {
+                return 0.0;
+            }
+            ref_total += theirs;
+            ratio = ratio.min(ours as f32 / theirs as f32);
+        }
+        let mut our_total = 0;
+        for (_element, modifiers) in self.elements {
+            our_total += modifiers[Modifier::Provide];
+        }
+        return ref_total as f32 * ratio / our_total as f32;
     }
 
     pub fn advance_time(&mut self) -> Option<String> {
@@ -302,15 +371,9 @@ impl Ingredient {
             },
             Container::Bottle => if let Solvent::Vivo = self.solvent {
                 *self = ROT.clone();
+                self.container = Container::Bottle;
                 Some(format!("{} rotted", old_name))
             } else { None }
         }
-    }
-}
-
-impl fmt::Display for Ingredient {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?} base: ", self.solvent)?;
-        write!(f, "{}", self.display_elements())
     }
 }
