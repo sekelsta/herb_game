@@ -69,7 +69,8 @@ pub struct Region {
     name: &'static str,
     description: &'static str,
     routes: EnumMap<Direction, RegionEnum>,
-    //herbs:,
+    current_herbs: Vec<Ingredient>,
+    possible_herbs: Vec<&'static Ingredient>,
 }
 
 pub struct World {
@@ -94,6 +95,8 @@ impl World {
                     South | Southeast | Southwest | West => FriendlyForest,
                     North | Northeast | Northwest => Village,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: Vec::new(),
             },
             Garden => Region {
                 name: "Your Garden",
@@ -104,6 +107,8 @@ impl World {
                     South | Southeast | Southwest => FriendlyForest,
                     North | Northwest => Village,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: Vec::new(),
             },
             FriendlyForest => Region {
                 name: "Friendly Forest",
@@ -116,6 +121,8 @@ impl World {
                     Northeast => WildflowerMeadow,
                     West => PineForest,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: Vec::new(),
             },
             Village => Region {
                 name: "Village Square",
@@ -127,6 +134,8 @@ impl World {
                     Southeast => MeadowRiver,
                     West | Southwest => PineForest,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: Vec::new(),
             },
             Field => Region {
                 name: "Weedy Field",
@@ -136,6 +145,8 @@ impl World {
                     East | Northeast | North => PineForest,
                     West | Northwest => WildflowerMeadow,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: vec!(&*DANDELION),
             },
             PineForest => Region {
                 name: "Pine Forest",
@@ -145,6 +156,8 @@ impl World {
                     South | Southeast => FriendlyForest,
                     _ => PineForest,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: Vec::new(),
             },
             WildflowerMeadow => Region {
                 name: "Wildflower Meadow",
@@ -154,6 +167,8 @@ impl World {
                     South | Southeast | East => MeadowRiver,
                     _ => WildflowerMeadow,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: vec!(&*DANDELION),
             },
             MeadowRiver => Region {
                 name: "Meadow Riverbank",
@@ -165,6 +180,8 @@ impl World {
                     South | Southwest => ForestRiver,
                     _ => MeadowRiver,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: vec!(&*DANDELION),
             },
             ForestRiver => Region {
                 name: "Forest Riverbank",
@@ -174,6 +191,8 @@ impl World {
                     Northeast | East => MeadowRiver,
                     _ => ForestRiver,
                 ),
+                current_herbs: Vec::new(),
+                possible_herbs: Vec::new(),
             },
         );
 
