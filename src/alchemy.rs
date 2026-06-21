@@ -39,8 +39,7 @@ pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
     Ingredient { name: "spirits", solvent: Solvent::Ether, container: Container::None, elements }
 });
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
-    let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-    Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements }
+    Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default() }
 });
 
 #[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
@@ -171,11 +170,15 @@ impl Ingredient {
         }
     }
 
+    pub fn decoct(&mut self, addition: &Ingredient) -> String {
+        format!("{}\n{}", self.boil(), { self.add(addition); self.to_string() })
+    }
+
     pub fn infuse(&mut self, addition: &Ingredient) {
         // TODO
     }
 
-    pub fn add(&mut self, ingredient: Ingredient) {
+    pub fn add(&mut self, ingredient: &Ingredient) {
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
                 self.elements[element][modifier] += ingredient.elements[element][modifier];

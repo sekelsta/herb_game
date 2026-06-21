@@ -80,6 +80,7 @@ pub struct World {
     pub regions: EnumMap<RegionEnum, Region>,
     pub current_region: RegionEnum,
     pub satchel: Vec<Ingredient>,
+    pub unlimited_ingredients: Vec<&'static Ingredient>,
     pub empty_bottles: i32,
     pub infusion_shelf: Vec<Ingredient>,
     pub cauldron: Option<Ingredient>,
@@ -203,6 +204,7 @@ impl World {
             regions,
             current_region: Hut,
             empty_bottles: 4,
+            unlimited_ingredients: vec!(&*WATER),
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
             cauldron: None,
@@ -252,6 +254,9 @@ impl World {
         if let Some(pos) = self.satchel.iter().position(|x| x.matches_name(params)) {
             return Ok(self.satchel.remove(pos));
         }
+        if let Some(pos) = self.unlimited_ingredients.iter().position(|x| x.matches_name(params)) {
+            return Ok(self.unlimited_ingredients[pos].clone());
+        }
         if let Some(pos) = self.infusion_shelf.iter().position(|x| x.full_name() == params) {
             return Err("Wait for that to finish infusing first.".to_string()) 
         }
@@ -296,6 +301,32 @@ impl World {
         }
     }
 
+    fn fill_cauldron(&mut self) -> String {
+        if !self.has_cauldron() {
+            return "You don't have the equipment to brew potions out here.".to_string();
+        }
+        match &self.cauldron {
+            Some(work) => "Specify an ingredient.".to_string(),
+            None => {
+                let work = WATER.clone();
+                let descr = work.to_string();
+                let name = work.full_name();
+                self.cauldron = Some(work);
+                format!("You pour {0} into the cauldron and bring it to a boil.\n{1}", name, descr)
+            }
+        }
+    }
+
+    fn decoct(&mut self, addition: Ingredient) -> String {
+        if !self.has_cauldron() {
+            return "You don't have the equipment to brew potions out here.".to_string();
+        }
+        if self.cauldron.is_none() {
+            self.fill_cauldron();
+        }
+        self.cauldron.as_mut().unwrap().decoct(&addition)
+    }
+
     fn infuse(&mut self, base: &mut Ingredient, addition: &mut Ingredient) -> String {
         match base.container {
             Container::Bottle => base.infuse(addition),
@@ -308,26 +339,10 @@ impl World {
         let mut ingredient = addition.clone();
         // TODO: Filter out elements by infusion base type (water, tincture, oil)
         ingredient.halve();
-        infusion.add(ingredient);
+        infusion.add(&ingredient);
         let result = infusion.to_string();
         self.infusion_shelf.push(infusion);
         result
-    }
-
-    fn decoct(&mut self, params: &str) -> String {
-        if !self.has_cauldron() {
-            return "You don't have the equipment to brew potions out here.".to_string();
-        }
-        match &self.cauldron {
-            Some(work) => "brewing not yet implemented".to_string(),
-            None => {
-                let work = WATER.clone();
-                let descr = work.to_string();
-                let name = work.full_name();
-                self.cauldron = Some(work);
-                format!("You pour {0} into the cauldron and bring it to a boil.\n{1}", name, descr)
-            }
-        }
     }
 
     fn look(&mut self) -> String {
@@ -339,6 +354,7 @@ impl World {
 "TODO - potion making instructions
 north, south, east, west, [location name] - travel
 inv or satchel - list items inside your satchel
+brew [ingredient] - add the ingredient to the cauldron
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 dump - empty out the cauldron and get rid of the contents
 map - display a map of the area
@@ -374,12 +390,21 @@ pub fn step(command: &str) -> String {
         match verb {
             "go"|"travel"|"to"|"the" => step(&params),
             "inv"|"inventory"|"satchel" => world.list_satchel(),
-            "brew"|"decoct"|"cauldron" => world.decoct(&params),
+            "brew"|"decoct"|"cauldron" => {
+                if params == "" {
+                    world.fill_cauldron()
+                } else {
+                    match world.take_ingredient(&params) {
+                        Ok(ingr) => world.decoct(ingr),
+                        Err(e) => e,
+                    }
+                }
+            }
             "bottle" => {
                 match world.take_ingredient(&params) {
-                    Ok(mut i) => {
-                        let result = world.bottle(&mut i);
-                        world.satchel.push(i);
+                    Ok(mut ingr) => {
+                        let result = world.bottle(&mut ingr);
+                        world.satchel.push(ingr);
                         result.unwrap_or_else(|e| e)
                     }
                     Err(e) => e,
