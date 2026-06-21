@@ -204,17 +204,21 @@ impl Ingredient {
     }
 
     pub fn decoct(&mut self, addition: &Ingredient) -> String {
-        format!("{}\n{}", self.boil(), { self.add(addition); self.to_string() })
+        format!("{}\n{}", self.boil(), { self.apply(addition); self.to_string() })
     }
 
-    pub fn infuse(&mut self, addition: &Ingredient) {
-        // TODO
+    pub fn infuse(&mut self, addition: &Ingredient) -> String {
+        let mut ingredient = addition.clone();
+        // TODO: Filter out elements by infusion base type (water, tincture, oil)
+        ingredient.halve();
+        self.add(&ingredient);
+        self.to_string()
     }
 
     pub fn add(&mut self, ingredient: &Ingredient) {
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
-                self.elements[element][modifier] += ingredient.elements[element][modifier];
+                self.elements[element][modifier] += amount;
             }
         }
     }
@@ -222,12 +226,12 @@ impl Ingredient {
     pub fn halve(&mut self) {
         for (element, modifiers) in self.elements {
             for (modifier, amount) in modifiers {
-                self.elements[element][modifier] = (self.elements[element][modifier] as f32 / 2.0).ceil() as i32;
+                self.elements[element][modifier] = (amount as f32 / 2.0).ceil() as i32;
             }
         }
     }
 
-    pub fn apply(&mut self, ingredient: Ingredient) {
+    pub fn apply(&mut self, ingredient: &Ingredient) {
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
                 let power = self.elements[element][Modifier::Provide];

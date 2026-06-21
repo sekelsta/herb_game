@@ -1,6 +1,5 @@
 use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
-use rand::Rng;
 use std::str::FromStr;
 use strum_macros::EnumString;
 use wasm_bindgen::prelude::*;
@@ -277,7 +276,7 @@ impl World {
         result        
     }
 
-    fn take_ingredient(&mut self, params: &str) -> Result<Ingredient, String> {
+    fn take_ingredient(&mut self, params: &str, filter: impl Fn(&Ingredient) -> bool) -> Result<Ingredient, String> {
         if params == "" {
             if self.has_cauldron() {
                 let c = self.cauldron.take();
@@ -288,7 +287,7 @@ impl World {
             };
             return Err("Specify an ingredient".to_string())
         }
-        if let Some(pos) = self.satchel.iter().position(|x| x.matches_name(params)) {
+        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && x.matches_name(params)) {
             return Ok(self.satchel.remove(pos));
         }
         if let Some(pos) = self.unlimited_ingredients.iter().position(|x| x.matches_name(params)) {
@@ -298,6 +297,17 @@ impl World {
             return Err("Wait for that to finish infusing first.".to_string())
         }
         Err(format!("You have no such ingredient: {}", params))
+    }
+
+    fn bottle_named(&mut self, params: &str) -> String {
+        match self.take_ingredient(&params, |ingr: &Ingredient| ingr.container == Container::None) {
+            Ok(mut ingr) => {
+                let result = self.bottle(&mut ingr);
+                self.satchel.push(ingr);
+                result.unwrap_or_else(|e| e)
+            }
+            Err(e) => e,
+        }
     }
 
     fn bottle(&mut self, ingredient: &mut Ingredient) -> Result<String, String> {
@@ -389,22 +399,26 @@ impl World {
         self.cauldron.as_mut().unwrap().decoct(&addition)
     }
 
-    fn infuse(&mut self, base: &mut Ingredient, addition: &mut Ingredient) -> String {
+    fn infuse_named(&mut self, params: &str) -> String {
+        // TODO
+        self.infuse(WATER.clone(), &WATER.clone())
+    }
+
+    fn infuse(&mut self, base: Ingredient, addition: &Ingredient) -> String {
+        if let Container::Bottle = addition.container {
+            self.empty_bottles += 1;
+        }
+        let mut base = base;
         match base.container {
-            Container::Bottle => base.infuse(addition),
-            Container::None => match self.bottle(base) {
+            Container::Bottle => (),
+            Container::None => match self.bottle(&mut base) {
                 Ok(result) => (),
                 Err(result) => return result,
             },
-        };
-        let mut infusion = base.clone();
-        let mut ingredient = addition.clone();
-        // TODO: Filter out elements by infusion base type (water, tincture, oil)
-        ingredient.halve();
-        infusion.add(&ingredient);
-        let result = infusion.to_string();
-        self.infusion_shelf.push(infusion);
-        result
+        }
+        let result = base.infuse(addition);
+        self.infusion_shelf.push(base);
+        format!("Bottle of [{}] added to shelf to infuse over time.", result)
     }
 
     fn advance_time(&mut self) -> String {
@@ -477,22 +491,14 @@ pub fn step(command: &str) -> String {
                 if params == "" {
                     world.fill_cauldron()
                 } else {
-                    match world.take_ingredient(&params) {
+                    match world.take_ingredient(&params, |x| true) {
                         Ok(ingr) => world.decoct(ingr),
                         Err(e) => e,
                     }
                 }
             }
-            "bottle" => {
-                match world.take_ingredient(&params) {
-                    Ok(mut ingr) => {
-                        let result = world.bottle(&mut ingr);
-                        world.satchel.push(ingr);
-                        result.unwrap_or_else(|e| e)
-                    }
-                    Err(e) => e,
-                }
-            },
+            "infuse" => world.infuse_named(&params),
+            "bottle" => world.bottle_named(&params),
             "dump"|"spill"|"empty" => world.dump(&params),
             "stir" => world.stir(),
             "map" | "surroundings" => MAP.to_string(),

@@ -233,7 +233,7 @@ pub static DEADLY_NIGHTSHADE: Lazy<Ingredient> = Lazy::new(|| {
     Ingredient { name: "deadly nightshade", solvent: Solvent::Vivo, container: Container::None, elements }
 });
 
-pub static BITTERWEET: Lazy<Ingredient> = Lazy::new(|| {
+pub static BITTERSWEET: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     Ingredient { name: "bittersweet nightshade", solvent: Solvent::Vivo, container: Container::None, elements }
 });
@@ -273,3 +273,5 @@ pub static YELLOW_DOCK: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     Ingredient { name: "bitter dock", solvent: Solvent::Vivo, container: Container::None, elements }
 });
+
+// Comfrey, boneset
