@@ -234,6 +234,10 @@ impl World {
         return self.current_region == RegionEnum::Hut;
     }
 
+    fn list_satchel(&self) -> String {
+        self.satchel.iter().map(|i| i.full_name()).collect::<Vec<String>>().join("\n")
+    }
+
     fn take_ingredient(&mut self, params: &str) -> Result<Ingredient, String> {
         if params == "" {
             if self.has_cauldron() {
@@ -242,21 +246,27 @@ impl World {
                     Some(ingredient) => Ok(ingredient),
                     None => Err("The cauldron is empty".to_string()),
                 }
-            }
+            };
+            return Err("Specify an ingredient".to_string())
         }
-        // TODO: Remove and return specified ingredient from satchel
-        Err("You have no such ingredient.".to_string())
+        if let Some(pos) = self.satchel.iter().position(|x| x.matches_name(params)) {
+            return Ok(self.satchel.remove(pos));
+        }
+        if let Some(pos) = self.infusion_shelf.iter().position(|x| x.full_name() == params) {
+            return Err("Wait for that to finish infusing first.".to_string()) 
+        }
+        Err(format!("You have no such ingredient: {}", params)) 
     }
 
     fn bottle(&mut self, ingredient: &mut Ingredient) -> Result<String, String> {
         match ingredient.container {
-            Container::Bottle => Err(format!("The {} is already bottled.", ingredient.name())),
+            Container::Bottle => Err(format!("The {} is already bottled.", ingredient.full_name())),
             Container::None => {
                 if self.empty_bottles <= 0 {
                     return Err("You don't have an empty glass bottle. Buy more bottles, or use or sell your potions.".to_string());
                 }
                 self.empty_bottles -= 1;
-                let result = format!("You put the {} into a clean bottle.", ingredient.name());
+                let result = format!("You put the {} into a clean bottle.", ingredient.full_name());
                 ingredient.container = Container::Bottle;
                 Ok(result)
             }
@@ -299,8 +309,9 @@ impl World {
             None => {
                 let work = WATER.clone();
                 let descr = work.to_string();
+                let name = work.full_name();
                 self.cauldron = Some(work);
-                format!("You pour water into the cauldron.\n{}", descr)
+                format!("You pour {0} into the cauldron and bring it to a boil.\n{1}", name, descr)
             }
         }
     }
@@ -313,6 +324,8 @@ impl World {
     fn help(&mut self) -> String {
 "TODO - potion making instructions
 north, south, east, west, [location name] - travel
+inv or satchel - list items inside your satchel
+bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 map - display a map of the area
 look - describe your current location
 help - print this info".to_string()
@@ -345,7 +358,8 @@ pub fn step(command: &str) -> String {
         let params = words.collect::<Vec<&str>>().join(" ");
         match verb {
             "go"|"travel"|"to"|"the" => step(&params),
-            "brew" => world.decoct(&params),
+            "inv"|"inventory"|"satchel" => world.list_satchel(),
+            "brew"|"decoct" => world.decoct(&params),
             "bottle" => {
                 match world.take_ingredient(&params) {
                     Ok(mut i) => {

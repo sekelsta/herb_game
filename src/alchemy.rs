@@ -27,19 +27,17 @@ const EVAPORABLE_ELEMENTS: [Element; 7] = [
     Element::Mana,
 ];
 
-
+// Names are hardcoded in name() so make sure to adjust both places if changing
 pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Water][Modifier::Provide] = 4;
     Ingredient { name: "water", solvent: Solvent::Water, container: Container::None, elements }
 });
-
 pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Spirit][Modifier::Provide] = 4;
     Ingredient { name: "spirits", solvent: Solvent::Ether, container: Container::None, elements }
 });
-
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements }
@@ -116,7 +114,7 @@ pub struct Ingredient {
 }
 
 impl Ingredient {
-    pub fn name(&self) -> String {
+    pub fn full_name(&self) -> String {
         let name = match self.solvent {
             Solvent::Air => format!("dry {}", self.name),
             Solvent::Ether if self.name != "spirits" => format!("{} tincture", self.name),
@@ -129,6 +127,10 @@ impl Ingredient {
             Container::Bottle => format!("bottle of {}", name),
             Container::None => name,
         }
+    }
+
+    pub fn matches_name(&self, needle: &str) -> bool {
+        needle == self.full_name() || needle == self.name
     }
 
     pub fn boil(&mut self) -> String {
