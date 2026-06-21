@@ -235,12 +235,19 @@ impl Ingredient {
 impl fmt::Display for Ingredient {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?} base: ", self.solvent)?;
-        let any = false;
+        let mut any = false;
         for (element, status) in self.elements.iter().filter(|(_, s)| s[Modifier::Provide] != 0) {
             if any {
                 write!(f, ", ")?;
             }
-            write!(f, "{} {:?}", status[Modifier::Provide], element)?; // TODO: Stability
+            any = true;
+            if status[Modifier::Stabilize] == 0 {
+                write!(f, "{} {:?}", status[Modifier::Provide], element)?;
+            } else if status[Modifier::Stabilize] > 0 {
+                write!(f, "{} {:?} (+{} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize])?;
+            } else {
+                write!(f, "{} {:?} ({} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize])?;
+            }
         }
         Ok(())
     }

@@ -204,7 +204,7 @@ impl World {
             regions,
             current_region: Hut,
             empty_bottles: 4,
-            unlimited_ingredients: vec!(&*WATER),
+            unlimited_ingredients: vec!(&*WATER, &*ROT),
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
             cauldron: None,
