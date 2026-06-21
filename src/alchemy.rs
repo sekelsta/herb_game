@@ -64,6 +64,19 @@ pub enum Element {
     Shadow,
 }
 
+impl Element {
+    fn soluble(&self, solvent: &Solvent) -> bool {
+        use Element::*;
+        match solvent {
+            Solvent::Water => !matches!(self, Earth | Taint | Mana),
+            Solvent::Ether => !matches!(self, Earth | Thunder),
+            Solvent::Oil => matches!(self, Void | Air | Taint | Light | Shadow),
+            Solvent::Air => matches!(self, Void | Air | Spirit | Light),
+            Solvent::Vivo => true,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Enum, PartialEq)]
 pub enum Modifier {
     Strengthen, // Weaken if value is negative
@@ -225,7 +238,7 @@ impl Ingredient {
     pub fn infuse(&mut self, addition: &Ingredient) -> String {
         self.name = addition.name;
         let mut ingredient = addition.clone();
-        // TODO: Filter out elements by infusion base type (water, tincture, oil)
+        ingredient.discard_insoluble(&self.solvent);
         ingredient.halve();
         self.add(&ingredient);
         self.to_string()
@@ -243,6 +256,22 @@ impl Ingredient {
         for (element, modifiers) in self.elements {
             for (modifier, amount) in modifiers {
                 self.elements[element][modifier] = (amount as f32 / 2.0).ceil() as i32;
+            }
+        }
+    }
+
+    fn discard_insoluble(&mut self, solvent: &Solvent) {
+        for (element, modifiers) in self.elements {
+            if element == Element::Taint {
+                // You're not getting rid of it that easy
+                for (modifier, amount) in modifiers {
+                    self.elements[element][modifier] = (amount as f32 / 2.0).ceil() as i32;
+                }
+            }
+            else if !element.soluble(solvent) {
+                for (modifier, _) in modifiers {
+                    self.elements[element][modifier] = 0;
+                }
             }
         }
     }
