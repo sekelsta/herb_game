@@ -34,6 +34,8 @@ DDDDDDDDDDDDDDDD//DDDDDD//DDDDDDDDDD
 DDDDDDDDDDDDDD//DDDDDDD||DDDDDDDDDDD
 DDDDDDDDDDDD//DDDDDDDDDD\\DDDDDDDDDD"#;
 
+const ALCHEMY_BOOK: &str = "Alchemy for Dummies\nIf you are just starting out, alchemy can seem quite daunting! But don't worry, it is.\nThere are two main procedures to know about: infusion, and decoction. Both are much simpler than they sound. Infusion is soaking the ingredient in a liquid for a long time. This is typically done in a jar or bottle, left sitting in a cool dark place such as a shelf. Meanwhile decoction is a shorter soak at a much hotter temperature, that is, your standard boil-in-a-cauldron treatment witches have been practicing for aeons.";
+
 #[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
 #[strum(ascii_case_insensitive)]
 enum Direction {
@@ -474,6 +476,7 @@ stir - stir the cauldron as it boils, allowing lighter elements to evaporate
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 dump - empty out the cauldron and get rid of the contents
 map - display a map of the area
+book - read your alchemy instruction manual
 look - describe your current location
 help - print this info".to_string()
 }
@@ -522,6 +525,7 @@ pub fn step(command: &str) -> String {
             "dump"|"spill"|"empty" => world.dump(&params),
             "stir" => world.stir(),
             "map" | "surroundings" => MAP.to_string(),
+            "book"|"textbook"|"alchemy" => ALCHEMY_BOOK.to_string(),
             "look" => world.look(),
             "help" => help(),
             _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
