@@ -265,7 +265,7 @@ impl World {
     }
 
     fn forage(&mut self, params: &str) -> String {
-        let mut available = &mut self.regions[self.current_region].current_herbs;
+        let available = &mut self.regions[self.current_region].current_herbs;
         if available.len() == 0 {
             return "You found nothing.".to_string();
         }
@@ -293,7 +293,7 @@ impl World {
         if let Some(pos) = self.unlimited_ingredients.iter().position(|x| x.matches_name(params)) {
             return Ok(self.unlimited_ingredients[pos].clone());
         }
-        if let Some(pos) = self.infusion_shelf.iter().position(|x| x.full_name() == params) {
+        if let Some(_pos) = self.infusion_shelf.iter().position(|x| x.full_name() == params) {
             return Err("Wait for that to finish infusing first.".to_string())
         }
         Err(format!("You have no such ingredient: {}", params))
@@ -357,7 +357,7 @@ impl World {
             }
         }
         if let Some(pos) = self.infusion_shelf.iter().position(|x| x.container == Container::Bottle && x.full_name() == params) {
-            let mut bottled = self.infusion_shelf.remove(pos);
+            let bottled = self.infusion_shelf.remove(pos);
             self.empty_bottles += 1;
             return format!("Discarded infusing {}.", bottled.full_name())
         }
@@ -378,7 +378,7 @@ impl World {
             return "You don't have the equipment to brew potions out here.".to_string();
         }
         match &self.cauldron {
-            Some(work) => "Specify an ingredient.".to_string(),
+            Some(_) => "Specify an ingredient.".to_string(),
             None => {
                 let work = WATER.clone();
                 let descr = work.to_string();
@@ -400,11 +400,31 @@ impl World {
     }
 
     fn infuse_named(&mut self, params: &str) -> String {
-        // TODO
-        self.infuse(WATER.clone(), &WATER.clone())
+        let base = match self.take_ingredient(params, |_| true) {
+            Ok(ingredient) => ingredient,
+            Err(result) => return result,
+        };
+        let remainder = match base.search_remainder(params) {
+            Some(needle) => needle,
+            None => return self.infuse(WATER.clone(), base)
+        };
+        let addition = match self.take_ingredient(remainder, |_| true) {
+            Ok(ingredient) => ingredient,
+            Err(result) => return result,
+        };
+        self.infuse(base, addition)
     }
 
-    fn infuse(&mut self, base: Ingredient, addition: &Ingredient) -> String {
+    fn infuse(&mut self, base: Ingredient, addition: Ingredient) -> String {
+        match base.solvent {
+            Solvent::Vivo | Solvent::Air => {
+                let name = base.full_name();
+                self.satchel.push(base);
+                self.satchel.push(addition);
+                return format!("The base for the infusion must be a liquid, not {}.", name)
+            },
+            Solvent::Water | Solvent::Ether | Solvent::Oil => (),
+        }
         if let Container::Bottle = addition.container {
             self.empty_bottles += 1;
         }
@@ -412,11 +432,11 @@ impl World {
         match base.container {
             Container::Bottle => (),
             Container::None => match self.bottle(&mut base) {
-                Ok(result) => (),
+                Ok(_result) => (),
                 Err(result) => return result,
             },
         }
-        let result = base.infuse(addition);
+        let result = base.infuse(&addition);
         self.infusion_shelf.push(base);
         format!("Bottle of [{}] added to shelf to infuse over time.", result)
     }
@@ -491,7 +511,7 @@ pub fn step(command: &str) -> String {
                 if params == "" {
                     world.fill_cauldron()
                 } else {
-                    match world.take_ingredient(&params, |x| true) {
+                    match world.take_ingredient(&params, |_| true) {
                         Ok(ingr) => world.decoct(ingr),
                         Err(e) => e,
                     }

@@ -162,7 +162,22 @@ impl Ingredient {
     }
 
     pub fn matches_name(&self, needle: &str) -> bool {
-        needle == self.full_name() || needle == self.name
+        needle.starts_with(self.full_name().as_str()) || needle.starts_with(self.name)
+    }
+
+    pub fn search_remainder<'a>(&self, needle: &'a str) -> Option<&'a str> {
+        let full_name = self.full_name();
+        if needle == full_name || needle == self.name {
+            return None;
+        }
+        if needle.starts_with(full_name.as_str()) {
+            // Plus one to get rid of the separating space
+            return Some(&needle[full_name.len()+1..]);
+        }
+        if needle.starts_with(self.name) {
+            return Some(&needle[self.name.len()+1..]);
+        }
+        return Some(needle);
     }
 
     pub fn boil(&mut self) -> String {
@@ -208,6 +223,7 @@ impl Ingredient {
     }
 
     pub fn infuse(&mut self, addition: &Ingredient) -> String {
+        self.name = addition.name;
         let mut ingredient = addition.clone();
         // TODO: Filter out elements by infusion base type (water, tincture, oil)
         ingredient.halve();
