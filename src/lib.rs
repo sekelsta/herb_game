@@ -165,8 +165,8 @@ impl World {
                 description: "An overgrown farm field. The farmer says you can have the weeds for free.",
                 routes: enum_map!(
                     South | Southeast | Southwest => Village,
-                    East | Northeast | North => PineForest,
-                    West | Northwest => WildflowerMeadow,
+                    East | Northeast | North => WildflowerMeadow,
+                    West | Northwest => PineForest,
                 ),
                 current_herbs: Vec::new(),
                 possible_herbs: vec!(&*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER, &*VELVETLEAF, &*HORSETAIL, &*HEALALL, &*YARROW, &*FLEABANE, &*BLACK_NIGHTSHADE),
@@ -219,7 +219,7 @@ impl World {
             },
         );
 
-        World {
+        let mut world = World {
             regions,
             current_region: Hut,
             empty_bottles: 4,
@@ -227,7 +227,9 @@ impl World {
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
             cauldron: None,
-        }
+        };
+        world.advance_time();
+        world
     }
 
     fn travel_cardinal(&mut self, direction: Direction) -> String {
@@ -256,7 +258,19 @@ impl World {
     }
 
     fn list_satchel(&self) -> String {
-        self.satchel.iter().map(|i| i.full_name()).collect::<Vec<String>>().join("\n")
+        self.satchel.iter().map(|i| i.inventory_view()).collect::<Vec<String>>().join("\n")
+    }
+
+    fn forage(&mut self, params: &str) -> String {
+        let mut available = &mut self.regions[self.current_region].current_herbs;
+        if available.len() == 0 {
+            return "You found nothing.".to_string();
+        }
+        let pos = available.iter().position(|x| x.matches_name(params)).or(Some(0)).unwrap();
+        let found = available.remove(pos);
+        let result = format!("You collected {}.", found.full_name());
+        self.satchel.push(found);
+        result        
     }
 
     fn take_ingredient(&mut self, params: &str) -> Result<Ingredient, String> {
@@ -390,6 +404,7 @@ fn help() -> String {
 "TODO - potion making instructions
 sleep - advances time, allowing herbs to grow, infusions to infuse, and fresh herbs to dry out
 north, south, east, west, [location name] - travel
+gather [herb] - look for an herb, or if not specified hunt for any available herb in your current region
 inv or satchel - list items inside your satchel
 brew [ingredient] - add the ingredient to the cauldron
 stir - stir the cauldron as it boils, allowing lighter elements to evaporate
@@ -428,6 +443,7 @@ pub fn step(command: &str) -> String {
             "go"|"travel"|"to"|"the" => step(&params),
             "wait"|"advance"|"sleep" => world.advance_time(),
             "inv"|"inventory"|"satchel" => world.list_satchel(),
+            "gather"|"forage"|"collect" => world.forage(&params),
             "brew"|"decoct"|"cauldron" => {
                 if params == "" {
                     world.fill_cauldron()

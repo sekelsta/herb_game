@@ -123,7 +123,7 @@ impl Ingredient {
         let name = match self.solvent {
             Solvent::Air => format!("dry {}", self.name),
             Solvent::Ether if self.name != "spirits" => format!("{} tincture", self.name),
-            Solvent::Water if self.name != "water" => format!("aqueous {}", self.name),
+            Solvent::Water if self.name != "water" && self.name != "rot" => format!("aqueous {}", self.name),
             Solvent::Oil if self.name != "neutral oil" => format!("{} oil", self.name),
             Solvent::Vivo => format!("fresh {}", self.name),
             _ => self.name.to_string(),
@@ -131,6 +131,33 @@ impl Ingredient {
         match self.container {
             Container::Bottle => format!("bottle of {}", name),
             Container::None => name,
+        }
+    }
+
+    pub fn inventory_view(&self) -> String {
+        format!("{} - {}", self.full_name(), self.display_elements())
+    }
+
+    fn display_elements(&self) -> String {
+        let mut string = "".to_string();
+        let mut any = false;
+        for (element, status) in self.elements.iter().filter(|(_, s)| s[Modifier::Provide] != 0) {
+            if any {
+                string.push_str(", ");
+            }
+            any = true;
+            if status[Modifier::Stabilize] == 0 {
+                string.push_str(format!("{} {:?}", status[Modifier::Provide], element).as_str());
+            } else if status[Modifier::Stabilize] > 0 {
+                string.push_str(format!("{} {:?} (+{} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize]).as_str());
+            } else {
+                string.push_str(format!("{} {:?} ({} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize]).as_str());
+            }
+        }
+        if any {
+            string
+        } else {
+            "Inert".to_string()
         }
     }
 
@@ -235,20 +262,6 @@ impl Ingredient {
 impl fmt::Display for Ingredient {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?} base: ", self.solvent)?;
-        let mut any = false;
-        for (element, status) in self.elements.iter().filter(|(_, s)| s[Modifier::Provide] != 0) {
-            if any {
-                write!(f, ", ")?;
-            }
-            any = true;
-            if status[Modifier::Stabilize] == 0 {
-                write!(f, "{} {:?}", status[Modifier::Provide], element)?;
-            } else if status[Modifier::Stabilize] > 0 {
-                write!(f, "{} {:?} (+{} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize])?;
-            } else {
-                write!(f, "{} {:?} ({} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize])?;
-            }
-        }
-        Ok(())
+        write!(f, "{}", self.display_elements())
     }
 }
