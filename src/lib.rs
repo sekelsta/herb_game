@@ -5,8 +5,10 @@ use strum_macros::EnumString;
 use wasm_bindgen::prelude::*;
 
 mod alchemy;
+mod herbs;
 
 use crate::alchemy::*;
+use crate::herbs::*;
 
 static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
@@ -123,7 +125,7 @@ impl World {
                     West => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*NEW_YORK_FERN, &*VIOLET, &*JACK_IN_THE_PULPIT, &*BLUEBELL, &*TROUT_LILY, &*WILD_STRAWBERRY, &*ENCHANTERS_NIGHTSHADE),
+                possible_herbs: vec!(&*NEW_YORK_FERN, &*VIOLET, &*JACK_IN_THE_PULPIT, &*BLUEBELL, &*TROUT_LILY, &*WILD_STRAWBERRY, &*ENCHANTERS_NIGHTSHADE, &*BURDOCK),
             },
             Village => Region {
                 name: "Village Square",
@@ -169,7 +171,7 @@ impl World {
                     _ => WildflowerMeadow,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*HEALALL, &*SWEET_ANNIE, &*YARROW, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*FEVERFEW, &*CHAMOMILE, &*BORAGE),
+                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*HEALALL, &*SWEET_ANNIE, &*YARROW, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*FEVERFEW, &*CHAMOMILE, &*BORAGE, &*YELLOW_DOCK),
             },
             MeadowRiver => Region {
                 name: "Meadow Riverbank",
