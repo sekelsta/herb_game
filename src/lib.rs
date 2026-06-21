@@ -52,6 +52,7 @@ enum Direction {
 #[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
 #[strum(ascii_case_insensitive)]
 pub enum RegionEnum {
+    #[strum(serialize = "hut", serialize = "home")]
     Hut,
     Garden,
     #[strum(serialize = "village square", serialize = "village", serialize = "market")]
@@ -143,7 +144,7 @@ impl World {
                     South | Southeast | Southwest => ForestRiver,
                     East => MeadowRiver,
                     Northeast => WildflowerMeadow,
-                    West => PineForest,
+                    West => FriendlyForest,
                 ),
                 current_herbs: Vec::new(),
                 possible_herbs: vec!(&*NEW_YORK_FERN, &*VIOLET, &*JACK_IN_THE_PULPIT, &*BLUEBELL, &*TROUT_LILY, &*WILD_STRAWBERRY, &*ENCHANTERS_NIGHTSHADE, &*BURDOCK),
@@ -177,7 +178,7 @@ impl World {
                 description: "Soft needles crackle beneath your feet.",
                 routes: enum_map!(
                     East | Northeast => Field,
-                    South | Southeast => FriendlyForest,
+                    South | Southeast => Village,
                     _ => PineForest,
                 ),
                 current_herbs: Vec::new(),
@@ -466,18 +467,24 @@ impl World {
 
 
 fn help() -> String {
-"TODO - potion making instructions
-sleep - advances time, allowing herbs to grow, infusions to infuse, and fresh herbs to dry out
+"==Navigation==
 north, south, east, west, [location name] - travel
+look - describe your current location
+map - display a map of the area
+
+==Foraging==
 gather or forage - search for herbs in your current region, with priority for a specific herb if you name one
 inv or satchel - list items inside your satchel
+
+==Brewing==
+book - read your alchemy instruction manual
 brew [ingredient] - add the ingredient to the cauldron
 stir - stir the cauldron as it boils, allowing lighter elements to evaporate
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 dump - empty out the cauldron and get rid of the contents
-map - display a map of the area
-book - read your alchemy instruction manual
-look - describe your current location
+
+==Misc==
+sleep - advances time, allowing herbs to regrow, infusions to infuse, and fresh herbs to dry out
 help - print this info".to_string()
 }
 
