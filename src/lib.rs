@@ -1,6 +1,8 @@
 use std::io::{self, BufRead, Write};
 use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
+use std::str::FromStr;
+use strum_macros::EnumString;
 use wasm_bindgen::prelude::*;
 
 mod alchemy;
@@ -9,7 +11,29 @@ use crate::alchemy::*;
 
 static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
-#[derive(Clone, Copy, Debug, Enum, PartialEq)]
+const MAP: &str = r#"PPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwwww
+PPPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwww
+PPPPPPPPPP----x---------wwwwwwwwwwww
+PPPPPPPPPP----------x---wwwwwwwwwwww
+PPPPPPPPPP---x----------wwwwwwwwwwww
+PPPPPPPPPP     _     wwwwwwwwwwwwwww
+PPPPPPP P     / \      wwwwwwwwwwwww
+PPPPPPPP   _  | |  _      wwwwwwwwww
+PDPPDPPP  / \     / \  wwwwwwwwwwwww
+PPDPPPDPD | |  __ | |    wwwwwwwwww/
+PDPPDPPDDP              wwwwwwwwww//
+PDPDPPDDPD       D _   DwwDwwwDw//ww
+DPDDPDDD  |~~~~|  / \   wwwwDDw//www
+DDDPDDPDD |~~~~|  |H| DDwDDwD//DDwDw
+DDDDDDDDDDDD      DDDDDDDD/~/wDDwDDw
+DDDDDDDDDDDDDDDDDDDDDDD//D//DDDDDDDw
+DDDDDDDDDDDDDDDDDDDD//DDD//DDDDDDDDD
+DDDDDDDDDDDDDDDD//DDDDDD//DDDDDDDDDD
+DDDDDDDDDDDDDD//DDDDDDD||DDDDDDDDDDD
+DDDDDDDDDDDD//DDDDDDDDDD\\DDDDDDDDDD"#;
+
+#[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
+#[strum(ascii_case_insensitive)]
 enum Direction {
     North,
     South,
@@ -21,7 +45,7 @@ enum Direction {
     Southwest,
 }
 
-#[derive(Clone, Copy, Debug, Enum, PartialEq)]
+#[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
 pub enum RegionEnum {
     Hut,
     Garden,
@@ -157,6 +181,16 @@ impl World {
         }
     }
 
+    fn travel_cardinal(&mut self, direction: Direction) -> String {
+        let current = self.current_region;
+        self.current_region = self.regions[self.current_region].routes[direction];
+        return if current == self.current_region {
+            "You decide not to travel so far from home after all.".to_string()
+        } else {
+            self.look()
+        }
+    }
+
     fn has_cauldron(&self) -> bool {
         return self.current_region == RegionEnum::Hut;
     }
@@ -232,19 +266,19 @@ impl World {
         }
     }
 
-    fn look(&mut self, params: &str) -> String {
+    fn look(&mut self) -> String {
         let region = &self.regions[self.current_region];
         format!("{}\n{}", region.name, region.description)
     }
 
-    fn help(&mut self, params: &str) -> String {
+    fn help(&mut self) -> String {
         "help text not yet implemented".to_string()
     }
 }
 
 #[wasm_bindgen]
 pub fn welcome() -> String {
-    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!".to_string()
+    format!("The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!\nSurroundings:\n{}", MAP)
 }
 
 #[wasm_bindgen]
@@ -257,8 +291,13 @@ pub fn step(command: &str) -> String {
             Some(v) => v,
             None => return "".to_string(),
         };
+        match Direction::from_str(verb) {
+            Ok(direction) => return world.travel_cardinal(direction),
+            Err(_) => (),
+        };
         let params = words.collect::<Vec<&str>>().join(" ");
         match verb {
+            "go"|"travel" => step(&params),
             "brew" => world.decoct(&params),
             "bottle" => {
                 match world.take_ingredient(&params) {
@@ -271,8 +310,9 @@ pub fn step(command: &str) -> String {
                 }
             },
             "stir" => world.stir(),
-            "look" => world.look(&params),
-            "help" => world.help(&params),
+            "map" | "surroundings" => MAP.to_string(),
+            "look" => world.look(),
+            "help" => world.help(),
             _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
         }
     }
