@@ -88,11 +88,18 @@ body {
   .output {
     color: orange;
   }
+}
+
+/* Show blinking cursor when the terminal-wrapper is focused. */
+#terminal-wrapper {
   .cursor {
     user-select: none;
-    color: white;
 
+    color: white;
     opacity: 0;
+  }
+
+  &:focus .cursor {
     animation: blink 1s step-start 0s infinite;
   }
 }
