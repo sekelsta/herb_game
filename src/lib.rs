@@ -110,6 +110,8 @@ pub struct World {
     pub satchel: Vec<Ingredient>,
     pub unlimited_ingredients: Vec<&'static Ingredient>,
     pub empty_bottles: i32,
+    pub bottles_sold: i32,
+    pub money: i32,
     pub infusion_shelf: Vec<Ingredient>,
     pub cauldron: Option<Ingredient>,
 }
@@ -158,7 +160,7 @@ impl World {
             },
             Village => Region {
                 name: "Village Square",
-                description: "You can buy or sell things here.",
+                description: "You can buy or sell things here.\nEmpty bottles cost 1 silver piece, spirits cost 8 and oil costs 24.",
                 routes: enum_map!(
                     South => Hut,
                     North | Northeast | Northwest => Field,
@@ -232,6 +234,8 @@ impl World {
             regions,
             current_region: Hut,
             empty_bottles: 4,
+            bottles_sold: 0,
+            money: 2,
             unlimited_ingredients: vec!(&*WATER, &*ROT),
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
@@ -267,7 +271,7 @@ impl World {
     }
 
     fn list_inventory(&self) -> String {
-        format!("{0}\nEmpty glass bottles: {1}", self.list_satchel(), self.empty_bottles)
+        format!("{0}\nEmpty glass bottles: {1}\nSilver pieces: {2}", self.list_satchel(), self.empty_bottles, self.money)
     }
 
     fn list_satchel(&self) -> String {
@@ -328,7 +332,7 @@ impl World {
             Container::Bottle => Err(format!("The {} is already bottled.", ingredient.full_name())),
             Container::None => {
                 if self.empty_bottles <= 0 {
-                    return Err("You don't have an empty glass bottle. Buy more bottles, or use or sell your potions.".to_string());
+                    return Err("You don't have an empty glass bottle. Buy more bottles, or sell your potions. Customers may or may not return the empty bottle afterwards.".to_string());
                 }
                 self.empty_bottles -= 1;
                 let result = format!("You put the {} into a clean bottle.", ingredient.full_name());
@@ -467,18 +471,79 @@ impl World {
         format!("Bottle of [{}] added to shelf to infuse over time.", result)
     }
 
+    fn buy(&mut self, params: &str) -> String {
+        if self.current_region != RegionEnum::Village {
+            return "There's no one here to buy from.".to_string()
+        }
+        let bottle_price = 1;
+        let spirits_price = 8;
+        let oil_price = 24;
+        match params {
+            "bottle" => {
+                if self.money < bottle_price {
+                    return format!("You only have {} silver and can't afford {} for a bottle", self.money, bottle_price);
+                }
+                self.money -= bottle_price;
+                self.empty_bottles += 1;
+                "You bought an empty bottle.".to_string()
+            }
+            "spirits" => {
+                if self.money < spirits_price {
+                    return format!("You only have {} silver and can't afford {} for some spirits", self.money, spirits_price);
+                }
+                self.money -= spirits_price;
+                self.satchel.push(ETHER.clone());
+                "You bought spirits.".to_string()
+            }
+            "oil" => {
+                if self.money < oil_price {
+                    return format!("You only have {} silver and can't afford {} for oil", self.money, oil_price);
+                }
+                self.money -= oil_price;
+                self.satchel.push(OIL.clone());
+                "You bought oil.".to_string()
+            }
+            _ => format!("The village doesn't sell '{}'", params)
+        }
+    }
+
+    fn sell(&mut self, params: &str) -> String {
+        if self.current_region != RegionEnum::Village {
+            return "There's no one here to sell to.".to_string()
+        }
+        "selling not yet implemented".to_string()
+    }
+
     fn advance_time(&mut self) -> String {
+        // Ingredients dry out or rot
         let herb_changes = self.satchel.iter_mut().filter_map(|i| i.advance_time()).collect::<Vec<String>>().join("\n");
+        // Infusions complete
         let infused = self.infusion_shelf.len();
         self.satchel.append(&mut self.infusion_shelf);
+        // Customers return bottles
+        let prev_bottles = self.empty_bottles;
+        for i in 0..self.bottles_sold {
+            if rand::random_bool(0.5) {
+                self.empty_bottles += 1;
+                self.bottles_sold -= 1;
+            } else if rand::random_bool(0.1) {
+                self.bottles_sold -= 1;
+            }
+        }
+        let bottles_returned = self.empty_bottles - prev_bottles;
+        // Herbs regrow
         for region in self.regions.values_mut() {
             region.regrow();
         }
-        match (herb_changes.as_str(), infused > 0) {
-            ("", true) => format!("Completed {} infusions.", infused),
-            (_, true) => format!("{0}\nCompleted {1} infusions.", herb_changes, infused),
-            ("", false) => "You wake refreshed.".to_string(),
-            (_, false) => herb_changes,
+        match (herb_changes.as_str(), infused > 0, bottles_returned > 0) {
+            ("", true, false) => format!("Completed {} infusions.", infused),
+            (_, true, false) => format!("{0}\nCompleted {1} infusions.", herb_changes, infused),
+            ("", false, false) => "You wake refreshed.".to_string(),
+            (_, false, false) => herb_changes,
+            ("", true, true) => format!("Completed {} infusions.\nCustomers returned {} empty bottles.", infused, bottles_returned),
+            (_, true, true) => format!("{0}\nCompleted {1} infusions.\nCustomers returned {2} empty bottles.", herb_changes, infused, bottles_returned),
+            ("", false, true) => format!("Customers returned {} empty bottles.", bottles_returned),
+            (_, false, true) => format!("{}\nCustomers returned {} empty bottles.", herb_changes, bottles_returned),
         }
     }
 
@@ -501,13 +566,16 @@ inv or satchel - list items inside your satchel
 
 ==Brewing==
 book - read your alchemy instruction manual
-brew [ingredient] - add the ingredient to the cauldron
+brew [ingredient] - add the ingredient to the cauldron for a decoction
+soak [ingredient] - add the ingredient to a bottle for an infusion
 stir - stir the cauldron as it boils, allowing lighter elements to evaporate
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 dump - empty out the cauldron and get rid of the contents
 
 ==Misc==
 sleep - advances time, allowing herbs to regrow, infusions to infuse, and fresh herbs to dry out
+sell [item] - exchange goods for money at the village market
+buy [item] - same deal, but money for goods
 help - print this info".to_string()
 }
 
@@ -550,10 +618,12 @@ pub fn step(command: &str) -> String {
                     }
                 }
             }
-            "infuse" => world.infuse_named(&params),
+            "soak"|"infuse" => world.infuse_named(&params),
             "bottle" => world.bottle_named(&params),
             "dump"|"spill"|"empty" => world.dump(&params),
             "stir" => world.stir(),
+            "sell" => world.sell(&params),
+            "buy" => world.buy(&params),
             "map" | "surroundings" => MAP.to_string(),
             "book"|"textbook"|"alchemy" => ALCHEMY_BOOK.to_string(),
             "look" => world.look(),
