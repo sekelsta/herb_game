@@ -320,6 +320,9 @@ impl World {
         if self.current_region != RegionEnum::Village {
             return "There's no one here to sell to.".to_string()
         }
+        if params == "soul" {
+            return "We deal in spirits, but not souls.".to_string();
+        }
         if params == "bottle" {
             if self.empty_bottles <= 0 {
                 return "You have no bottles to sell".to_string();

@@ -155,24 +155,24 @@ pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 27] = [
         elements[Air] = 7;
         elements[Fire] = 3;
     })),
-    Lazy::new(|| Ingredient::new_potion("shock", Shock, 1.0, |elements| {
+    Lazy::new(|| Ingredient::new_potion("vial of shock", Shock, 1.0, |elements| {
         elements[Light] = 5;
         elements[Fire] = 4;
         elements[Thunder] = 3;
     })),
-    Lazy::new(|| Ingredient::new_potion("fire", Flame, 1.0, |elements| {
+    Lazy::new(|| Ingredient::new_potion("vial of fire", Flame, 1.0, |elements| {
         elements[Fire] = 8;
         elements[Earth] = 1;
     })),
-    Lazy::new(|| Ingredient::new_potion("lightning", Lightning, 1.0, |elements| {
+    Lazy::new(|| Ingredient::new_potion("vial of lightning", Lightning, 1.0, |elements| {
         elements[Thunder] = 6;
         elements[Light] = 6;
     })),
-    Lazy::new(|| Ingredient::new_potion("ice", Freeze, 1.0, |elements| {
+    Lazy::new(|| Ingredient::new_potion("vial of ice", Freeze, 1.0, |elements| {
         elements[Ice] = 8;
         elements[Earth] = 1;
     })),
-    Lazy::new(|| Ingredient::new_potion("poison", Poison, 1.0, |elements| {
+    Lazy::new(|| Ingredient::new_potion("vial of poison", Poison, 1.0, |elements| {
         elements[Taint] = 6;
         elements[Air] = 2;
     })),
