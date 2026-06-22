@@ -52,11 +52,15 @@ function submitInput() {
 
 async function doOutput(output: string, gradual = true) {
   if (gradual) {
-    // Output one line per second.
-    for (let i = 0; i < output.length; i++) {
-      outputSpan.innerText += output[i];
+    // Output chars at 30 fps, targeting a total runtime of 5 seconds
+    // except with a minimum output rate of 80 chars/second.
+    const runtimeMs = Math.min(3000, output.length * (1000 / 80));
+    const intervals = runtimeMs / 16;
+    const chunkSize = Math.round(output.length / intervals);
+    for (let i = 0; i < output.length; i += chunkSize) {
+      outputSpan.innerText += output.slice(i, i + chunkSize);
       scrollToBottom();
-      await new Promise((resolve) => setTimeout(resolve, 1000 / 80));
+      await new Promise((resolve) => setTimeout(resolve, 16));
     }
   } else {
     outputSpan.innerText += output;
