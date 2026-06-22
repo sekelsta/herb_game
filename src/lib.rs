@@ -157,7 +157,7 @@ impl World {
                     West => FriendlyForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*VIOLET, &*ENCHANTERS_NIGHTSHADE, &*BLUEBELL),// &*JACK_IN_THE_PULPIT, &*TROUT_LILY, &*WILD_STRAWBERRY, &*NEW_YORK_FERN, &*BURDOCK),
+                possible_herbs: vec!(&*VIOLET, &*ENCHANTERS_NIGHTSHADE, &*BLUEBELL, &*BURDOCK),// &*JACK_IN_THE_PULPIT, &*TROUT_LILY, &*WILD_STRAWBERRY, &*NEW_YORK_FERN),
             },
             Village => Region {
                 name: "Village Square",
@@ -181,7 +181,7 @@ impl World {
                     West | Northwest => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*HORSETAIL, &*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER),// &*VELVETLEAF, &*HEALALL, &*YARROW, &*FLEABANE, &*BLACK_NIGHTSHADE, &*BITTERSWEET),
+                possible_herbs: vec!(&*HORSETAIL, &*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER, &*YARROW, &*HEALALL),// &*VELVETLEAF, &*FLEABANE, &*BLACK_NIGHTSHADE, &*BITTERSWEET),
             },
             PineForest => Region {
                 name: "Pine Forest",
@@ -203,7 +203,7 @@ impl World {
                     _ => WildflowerMeadow,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*FEVERFEW),// &*HEALALL, &*SWEET_ANNIE, &*YARROW, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*CHAMOMILE, &*BORAGE, &*YELLOW_DOCK),
+                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*HEALALL, &*FEVERFEW, &*YARROW),// &*SWEET_ANNIE, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*CHAMOMILE, &*BORAGE, &*YELLOW_DOCK),
             },
             MeadowRiver => Region {
                 name: "Meadow Riverbank",

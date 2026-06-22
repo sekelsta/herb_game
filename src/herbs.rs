@@ -135,4 +135,26 @@ pub static FOX_SEDGE: Lazy<Ingredient> = Lazy::new(|| Ingredient::new_herb("fox 
     elements[Void][Stabilize] = 3;
 }));
 
+pub static BURDOCK: Lazy<Ingredient> = Lazy::new(|| Ingredient::new_herb("burdock", 0.0, |elements| {
+    elements[Earth][Provide] = 3;
+    elements[Mana][Provide] = 2;
+    elements[Thunder][Provide] = 1;
+    elements[Fire][Stabilize] = 3;
+    elements[Ice][Stabilize] = -3;
+}));
+
+pub static HEALALL: Lazy<Ingredient> = Lazy::new(|| Ingredient::new_herb("heal-all", 0.0, |elements| {
+    elements[Earth][Provide] = 2;
+    elements[Water][Provide] = 1;
+    elements[Thunder][Provide] = 1;
+    elements[Light][Strengthen] = 3;
+    elements[Shadow][Provide] = 1;
+    elements[Shadow][Stabilize] = 1;
+}));
+
+pub static YARROW: Lazy<Ingredient> = Lazy::new(|| Ingredient::new_herb("heal-all", 0.0, |elements| {
+    elements[Air][Provide] = 4;
+    elements[Earth][Provide] = 2;
+}));
+
 // Comfrey, boneset

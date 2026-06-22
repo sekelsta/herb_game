@@ -50,15 +50,20 @@ pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
 
 use Element::*;
 use Effect::*;
-pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 26] = [
+pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 27] = [
     Lazy::new(|| Ingredient::new_potion("cough remedy", CoughRemedy, 1.0, |elements| {
         elements[Ice] = 2;
         elements[Thunder] = 2;
+        elements[Air] = 1;
     })),
     Lazy::new(|| Ingredient::new_potion("fever reducer", FeverReducer, 1.0, |elements| {
         elements[Ice] = 3;
         elements[Water] = 2;
         elements[Shadow] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("salve of healing", WoundHealing, 1.0, |elements| {
+        elements[Earth] = 4;
+        elements[Air] = 4;
     })),
     Lazy::new(|| Ingredient::new_potion("insect repellent", InsectRepellent, 1.0, |elements| {
         elements[Light] = 4;
@@ -265,6 +270,7 @@ pub enum Effect {
     SnakeRepellent,
     CharmProtection,
     PlantGrowth,
+    WoundHealing,
     Love,
     Fear,
     Rage,
@@ -297,6 +303,7 @@ impl Effect {
             SnakeRepellent => "Snake Repellent".to_string(),
             CharmProtection => "Charm Protection".to_string(),
             PlantGrowth => "Plant Growth".to_string(),
+            WoundHealing => "Wound Healing".to_string(),
             e => e.to_string(),
         }
     }
@@ -310,6 +317,7 @@ impl Effect {
             SnakeRepellent => 6,
             CharmProtection => 7,
             PlantGrowth => 4,
+            WoundHealing => 8,
             Love => 8,
             Fear => 9,
             Rage => 12,
