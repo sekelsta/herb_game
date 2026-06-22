@@ -7,33 +7,13 @@ use wasm_bindgen::prelude::*;
 
 mod alchemy;
 mod herbs;
+mod region;
 
 use crate::alchemy::*;
-use crate::herbs::*;
+use crate::region::*;
 
 static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
-const MAP: &str = r#"Surroundings:
-PPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwwww
-PPPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwww
-PPPPPPPPPP----x---------wwwwwwwwwwww
-PPPPPPPPPP----------x---wwwwwwwwwwww
-PPPPPPPPPP---x----------wwwwwwwwwwww
-PPPPPPPPPP     _     wwwwwwwwwwwwwww
-PPPPPPP P     / \      wwwwwwwwwwwww
-PPPPPPPP   _  | |  _      wwwwwwwwww
-PDPPDPPP  / \     / \  wwwwwwwwwwwww
-PPDPPPDPD | |  __ | |    wwwwwwwwww/
-PDPPDPPDDP              wwwwwwwwww//
-PDPDPPDDPD       D _   DwwDwwwDw//ww
-DPDDPDDD  |~~~~|  / \   wwwwDDw//www
-DDDPDDPDD |~~~~|  |H| DDwDDwD//DDwDw
-DDDDDDDDDDDD      DDDDDDDD/~/wDDwDDw
-DDDDDDDDDDDDDDDDDDDDDDD//D//DDDDDDDw
-DDDDDDDDDDDDDDDDDDDD//DDD//DDDDDDDDD
-DDDDDDDDDDDDDDDD//DDDDDD//DDDDDDDDDD
-DDDDDDDDDDDDDD//DDDDDDD||DDDDDDDDDDD
-DDDDDDDDDDDD//DDDDDDDDDD\\DDDDDDDDDD"#;
 
 const ALCHEMY_BOOK: &str = "Alchemy for Dummies
 If you are just starting out, alchemy can seem quite daunting! But don't worry, it is.
@@ -43,67 +23,7 @@ So how do you actually brew a potion? Start with a liquid base, usually water bu
 Infusions are if anything simpler than decoctions. Put your herb right into a bottle with any liquid base, and leave it in a cool dark place, perhaps a shelf, while you sleep. After enough time has passed you will see that the liquid has taken on some of the color of the plant. This indicates that the plant's elemental energies have leached into the liquid, and your infusion is ready to be filtered and put to use. You can make potions directly as infusions, you can add them to your boiling decoctions in place of the herb, or you can even add another herb and infuse again. You can also infuse an herb into a decoction, with or without existing potion effects, to add to the elements and potentially create a new potion out of it. Note that infusing an herb and decocting an herb will not have quite the same effect. Only elements the herb provides directly will be available to create potion effects on the infusion. Herbs which strengthen existing elements will not do so when added to an infusion. Another thing to note is that more of the elemental energy stays with the plant compared to a decoction. Certain types of elements, if they are not soluble in your chosen base, will not become available at all. This can be used to your advantage to purify the remaining elements, and can allow for higher quality potions if you know what you're doing.
 That's about all you need to know to get started. I encourage you to experiment for youself to discover what effects you can create. With trial and error you'll be able to refine your recipes, and as you go on you'll discover cheaper and more effective combinations of ingredients. Good luck!";
 
-#[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
-#[strum(ascii_case_insensitive)]
-enum Direction {
-    North,
-    South,
-    East,
-    West,
-    Northeast,
-    Northwest,
-    Southeast,
-    Southwest,
-}
 
-#[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
-#[strum(ascii_case_insensitive)]
-pub enum RegionEnum {
-    #[strum(serialize = "hut", serialize = "home")]
-    Hut,
-    Garden,
-    #[strum(serialize = "village square", serialize = "village", serialize = "market")]
-    Village,
-    #[strum(serialize = "weedy field", serialize = "field", serialize = "overgrown field")]
-    Field,
-    #[strum(serialize = "friendly forest", serialize = "forest")]
-    FriendlyForest,
-    #[strum(serialize = "wildflower meadow", serialize = "meadow")]
-    WildflowerMeadow,
-    #[strum(serialize = "pine forest", serialize = "pines")]
-    PineForest,
-    #[strum(serialize = "forest river")]
-    ForestRiver,
-    #[strum(serialize = "meadow river")]
-    MeadowRiver,
-}
-
-pub struct Region {
-    name: &'static str,
-    description: &'static str,
-    routes: EnumMap<Direction, RegionEnum>,
-    current_herbs: Vec<Ingredient>,
-    possible_herbs: Vec<&'static Ingredient>,
-}
-
-impl Region {
-    fn regrow(&mut self) {
-        for i in (0..self.current_herbs.len()).rev() {
-            if rand::random_bool(0.5) {
-                self.current_herbs.remove(i);
-            }
-        }
-        for &h in &self.possible_herbs {
-            if rand::random_bool(0.1) {
-                self.current_herbs.push(h.clone());
-            }
-            if rand::random_bool(0.1) {
-                self.current_herbs.push(h.clone());
-            }
-        }
-        self.current_herbs.shuffle(&mut rand::rng());
-    }
-}
 
 pub struct World {
     pub regions: EnumMap<RegionEnum, Region>,
@@ -119,121 +39,9 @@ pub struct World {
 
 impl World {
     pub fn new() -> Self {
-        use Direction::*;
-        use RegionEnum::*;
-        let regions = enum_map!(
-            Hut => Region {
-                name: "Home Sweet Home",
-                description: "A simple hut with a cauldron and rack of drying herbs in the back.",
-                routes: enum_map!(
-                    West => Garden,
-                    South | Southeast | Southwest | East => FriendlyForest,
-                    North | Northeast | Northwest => Village,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
-            },
-            Garden => Region {
-                name: "Your Garden",
-                description: "Needs some work. You decide you'd rather keep foraging from the wild.\nA few herbs have survived from better-tended times, with occasional weeds sprouting around them.",
-                routes: enum_map!(
-                    East => Hut,
-                    West | Northwest => PineForest,
-                    South | Southeast | Southwest => FriendlyForest,
-                    North | Northeast => Village,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: vec!( &*DANDELION, &*FEVERFEW, &*DAFFODIL),
-            },
-            FriendlyForest => Region {
-                name: "Friendly Forest",
-                description: "Dapples of light filter though the soft leaves.",
-                routes: enum_map!(
-                    North => Hut,
-                    Northwest => Garden,
-                    South | Southeast | Southwest => ForestRiver,
-                    East => MeadowRiver,
-                    Northeast => WildflowerMeadow,
-                    West => FriendlyForest,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: vec!(&*VIOLET, &*ENCHANTERS_NIGHTSHADE, &*BLUEBELL, &*BURDOCK),// &*JACK_IN_THE_PULPIT, &*TROUT_LILY, &*WILD_STRAWBERRY, &*NEW_YORK_FERN),
-            },
-            Village => Region {
-                name: "Village Square",
-                description: "You can buy or sell things here.\nEmpty bottles cost 1 silver apiece, spirits cost 8 and oil costs 24.",
-                routes: enum_map!(
-                    South => Hut,
-                    North | Northeast | Northwest => Field,
-                    East => WildflowerMeadow,
-                    Southeast => MeadowRiver,
-                    West | Southwest => PineForest,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
-            },
-            Field => Region {
-                name: "Weedy Field",
-                description: "An overgrown farm field. The farmer says you can have the weeds for free.",
-                routes: enum_map!(
-                    South | Southeast | Southwest => Village,
-                    East | Northeast | North => WildflowerMeadow,
-                    West | Northwest => PineForest,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: vec!(&*HORSETAIL, &*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER, &*YARROW, &*HEALALL),// &*VELVETLEAF, &*FLEABANE, &*BLACK_NIGHTSHADE, &*BITTERSWEET),
-            },
-            PineForest => Region {
-                name: "Pine Forest",
-                description: "Soft needles crackle beneath your feet.",
-                routes: enum_map!(
-                    East | Northeast => Field,
-                    South | Southeast => Village,
-                    _ => PineForest,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: vec!(&*VIOLET, &*COLUMBINE, &*WINTERGREEN),// &*WHITE_TRILLIUM, &*LADY_FERN, &*YEW, &*DEADLY_NIGHTSHADE),
-            },
-            WildflowerMeadow => Region {
-                name: "Wildflower Meadow",
-                description: "Tall grass for haying, interrupted by colorful flowers.",
-                routes: enum_map!(
-                    West | Southwest => Field,
-                    South | Southeast | East => MeadowRiver,
-                    _ => WildflowerMeadow,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*HEALALL, &*FEVERFEW, &*YARROW),// &*SWEET_ANNIE, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*CHAMOMILE, &*BORAGE, &*YELLOW_DOCK),
-            },
-            MeadowRiver => Region {
-                name: "Meadow Riverbank",
-                description: "A river flows beside the meadow, the bright sun sparkling off its waters.",
-                routes: enum_map!(
-                    North => WildflowerMeadow,
-                    Northwest => Village,
-                    West => FriendlyForest,
-                    South | Southwest => ForestRiver,
-                    _ => MeadowRiver,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: vec!(&*WATERMINT, &*HORSETAIL, &*COLTSFOOT),// &*TURTLEHEAD, &*JOE_PYE, &*MEADOW_ANEMONE, &*WILLOW, &*MARSH_MALLOW),
-            },
-            ForestRiver => Region {
-                name: "Forest Riverbank",
-                description: "A river flows through the forest.",
-                routes: enum_map!(
-                    North | Northwest | West => FriendlyForest,
-                    Northeast | East => MeadowRiver,
-                    _ => ForestRiver,
-                ),
-                current_herbs: Vec::new(),
-                possible_herbs: vec!(&*JEWELWEED, &*SPOTTED_DEADNETTLE, &*COLTSFOOT, &*FOX_SEDGE, &*SKUNK_CABBAGE),// &*CINNAMON_FERN, &*MEADOWSWEET),
-            },
-        );
-
         let mut world = World {
-            regions,
-            current_region: Hut,
+            regions: Region::new_regions(),
+            current_region: RegionEnum::Hut,
             empty_bottles: 4,
             bottles_sold: 0,
             money: 2,
@@ -644,7 +452,7 @@ pub fn step(command: &str) -> String {
             "stir" => world.stir(),
             "sell" => world.sell(&params),
             "buy" => world.buy(&params),
-            "map" | "surroundings" => MAP.to_string(),
+            "map" | "surroundings" => world.regions[world.current_region].local_map(),
             "book"|"textbook"|"alchemy" => ALCHEMY_BOOK.to_string(),
             "look" => world.look(),
             "help" => help(),
