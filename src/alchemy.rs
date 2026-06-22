@@ -48,12 +48,129 @@ pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
     Ingredient { name: "rot", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
 
-pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 1] = [
-    Lazy::new(|| {
-        let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-        elements[Element::Taint][Modifier::Provide] = 4;
-        Ingredient { name: "potion of testing", solvent: Solvent::Water, container: Container::Bottle, elements, toxicity: 0.0, effect: Some(Effect::CoughRemedy), strength: 1.0, }
-    })
+use Element::*;
+use Effect::*;
+pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 26] = [
+    Lazy::new(|| Ingredient::new_potion("cough remedy", CoughRemedy, 1.0, |elements| {
+        elements[Ice] = 2;
+        elements[Thunder] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("fever reducer", FeverReducer, 1.0, |elements| {
+        elements[Ice] = 3;
+        elements[Water] = 2;
+        elements[Shadow] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("insect repellent", InsectRepellent, 1.0, |elements| {
+        elements[Light] = 4;
+        elements[Air] = 3;
+        elements[Fire] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("snake repellent", SnakeRepellent, 1.0, |elements| {
+        elements[Ice] = 3;
+        elements[Fire] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("protection from charms", CharmProtection, 1.0, |elements| {
+        elements[Fire] = 4;
+        elements[Earth] = 4;
+    })),
+    Lazy::new(|| Ingredient::new_potion("love potion", Love, 1.0, |elements| {
+        elements[Fire] = 3;
+        elements[Air] = 3;
+        elements[Ice] = 1;
+        elements[Thunder] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of fear", Fear, 1.0, |elements| {
+        elements[Ice] = 3;
+        elements[Shadow] = 3;
+        elements[Water] = 2;
+        elements[Thunder] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of rage", Rage, 1.0, |elements| {
+        elements[Fire] = 3;
+        elements[Shadow] = 3;
+        elements[Taint] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of courage", Courage, 1.0, |elements| {
+        elements[Spirit] = 3;
+        elements[Fire] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("relaxant", Relaxation, 1.0, |elements| {
+        elements[Water] = 3;
+        elements[Fire] = 2;
+        elements[Earth] = 1;
+        elements[Light] = 1;
+        elements[Spirit] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("sleep draught", Sleep, 1.0, |elements| {
+        elements[Water] = 3;
+        elements[Taint] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("paralyzing poison", Paralysis, 1.0, |elements| {
+        elements[Taint] = 3;
+        elements[Void] = 3;
+    })),
+    Lazy::new(|| Ingredient::new_potion("intelligence potion", Intelligence, 1.0, |elements| {
+        elements[Water] = 5;
+        elements[Spirit] = 4;
+        elements[Fire] = 3;
+    })),
+    Lazy::new(|| Ingredient::new_potion("strength potion", Strength, 1.0, |elements| {
+        elements[Earth] = 6;
+        elements[Thunder] = 2;
+        elements[Ice] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of patience", Patience, 1.0, |elements| {
+        elements[Earth] = 5;
+        elements[Water] = 3;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of plant growth", PlantGrowth, 1.0, |elements| {
+        elements[Water] = 4;
+        elements[Light] = 4;
+        elements[Earth] = 2;
+        elements[Air] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of resillience", Resillience, 1.0, |elements| {
+        elements[Earth] = 4;
+        elements[Shadow] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("speed booster", Speed, 1.0, |elements| {
+        elements[Air] = 6;
+        elements[Thunder] = 6;
+        elements[Light] = 3;
+    })),
+    Lazy::new(|| Ingredient::new_potion("charisma", Charisma, 1.0, |elements| {
+        elements[Spirit] = 6;
+        elements[Void] = 3;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of seeing", Perception, 1.0, |elements| {
+        elements[Light] = 5;
+        elements[Shadow] = 4;
+    })),
+    Lazy::new(|| Ingredient::new_potion("perfume of loveliness", Loveliness, 1.0, |elements| {
+        elements[Air] = 7;
+        elements[Fire] = 3;
+    })),
+    Lazy::new(|| Ingredient::new_potion("shock", Shock, 1.0, |elements| {
+        elements[Light] = 5;
+        elements[Fire] = 4;
+        elements[Thunder] = 3;
+    })),
+    Lazy::new(|| Ingredient::new_potion("fire", Flame, 1.0, |elements| {
+        elements[Fire] = 8;
+        elements[Earth] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("lightning", Lightning, 1.0, |elements| {
+        elements[Thunder] = 6;
+        elements[Light] = 6;
+    })),
+    Lazy::new(|| Ingredient::new_potion("ice", Freeze, 1.0, |elements| {
+        elements[Ice] = 8;
+        elements[Earth] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("poison", Poison, 1.0, |elements| {
+        elements[Taint] = 6;
+        elements[Air] = 2;
+    })),
 ];
 
 #[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
@@ -131,9 +248,49 @@ impl fmt::Display for IngredientKind {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, strum_macros::Display)]
 pub enum Effect {
     CoughRemedy,
+    FeverReducer,
+    InsectRepellent,
+    SnakeRepellent,
+    CharmProtection,
+    PlantGrowth,
+    Love,
+    Fear,
+    Rage,
+    Courage,
+    Relaxation,
+    Sleep,
+    Paralysis,
+    Intelligence,
+    Strength,
+    Patience,
+    Resillience,
+    Speed,
+    Charisma,
+    Perception,
+    Loveliness,
+    Flame, 
+    Lightning,
+    Freeze,
+    Shock,
+    Poison,
+}
+
+impl Effect {
+    fn to_title_case(&self) -> String {
+        use Effect::*;
+        match self {
+            CoughRemedy => "Cough Remedy".to_string(),
+            FeverReducer => "Fever Reducer".to_string(),
+            InsectRepellent => "Insect Repellent".to_string(),
+            SnakeRepellent => "Snake Repellent".to_string(),
+            CharmProtection => "Charm Protection".to_string(),
+            PlantGrowth => "Plant Growth".to_string(),
+            e => e.to_string(),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -162,6 +319,24 @@ impl Ingredient {
         }
     }
 
+    pub fn new_potion(name: &'static str, effect: Effect, strength: f32, f: impl Fn(&mut EnumMap<Element, i32>)) -> Self {
+        let mut elements_provided: EnumMap<Element, i32> = EnumMap::default();
+        f(&mut elements_provided);
+        let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
+        for (element, amount) in elements_provided {
+            elements[element][Modifier::Provide] = amount;
+        }
+        Self {
+            name,
+            solvent: Solvent::Water,
+            container: Container::Bottle,
+            elements,
+            effect: Some(effect),
+            strength,
+            toxicity: 0.0,
+        }
+    }
+
     pub fn full_name(&self) -> String {
         let name = match self.solvent {
             Solvent::Air => format!("dry {}", self.name),
@@ -184,17 +359,22 @@ impl Ingredient {
     fn display_elements(&self) -> String {
         let mut string = "".to_string();
         let mut any = false;
-        for (element, status) in self.elements.iter().filter(|(_, s)| s[Modifier::Provide] != 0) {
+        for (element, status) in self.elements {
+            let provide = status[Modifier::Provide];
+            let stability = status[Modifier::Stabilize];
+            let strengthen = status[Modifier::Strengthen];
+            if provide == 0 && stability == 0 && strengthen == 0 {
+                continue;
+            }
             if any {
                 string.push_str(", ");
             }
             any = true;
-            if status[Modifier::Stabilize] == 0 {
-                string.push_str(format!("{} {:?}", status[Modifier::Provide], element).as_str());
-            } else if status[Modifier::Stabilize] > 0 {
-                string.push_str(format!("{} {:?} (+{} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize]).as_str());
-            } else {
-                string.push_str(format!("{} {:?} ({} stability)", status[Modifier::Provide], element, status[Modifier::Stabilize]).as_str());
+            match (strengthen == 0, stability == 0) {
+                (true, true) => string.push_str(format!("{} {:?}", provide, element).as_str()),
+                (true, false) => string.push_str(format!("{} {:?} ({:+} stability)", provide, element, stability).as_str()),
+                (false, true) => string.push_str(format!("{} ({:+}) {:?}", provide, strengthen, element).as_str()),
+                (false, false) => string.push_str(format!("{} ({:+}) {:?} ({:+} stability)", provide, strengthen, element, stability).as_str()),
             }
         }
         if any {
@@ -205,7 +385,10 @@ impl Ingredient {
     }
 
     pub fn show_in_progress(&self) -> String {
-        format!("{:?} base: {}. Effect: {:?} ({}% strength)", self.solvent, self.display_elements(), self.effect, self.strength * 100.0)
+        match &self.effect {
+            Some(effect) => format!("{:?} base: {}. Effect: {} ({:.1}% strength)", self.solvent, self.display_elements(), effect.to_title_case(), self.strength * 100.0),
+            None => format!("{:?} base: {}", self.solvent, self.display_elements()),
+        }
     }
 
     pub fn matches_name(&self, needle: &str) -> bool {
@@ -341,21 +524,31 @@ impl Ingredient {
 
     pub fn calc_strength(&self, reference: &Ingredient) -> f32 {
         let mut ref_total = 0;
+        let mut correct_total = 0;
+        let mut incorrect_total = 0;
         let mut ratio: f32 = 10.0; // Max strength before being more concentrated starts counting against you even in the correct ratio
         for (element, modifiers) in reference.elements {
             let theirs = modifiers[Modifier::Provide];
             let ours = self.elements[element][Modifier::Provide];
-            if theirs > ours {
+            // Allow up to one of each element to be missing
+            if theirs > ours + 1 {
                 return 0.0;
             }
             ref_total += theirs;
-            ratio = ratio.min(ours as f32 / theirs as f32);
+            correct_total += theirs.min(ours);
+            incorrect_total += (theirs - ours).abs();
+            ratio = ratio.min(ours as f32 / theirs as f32).max(1.0);
         }
         let mut our_total = 0;
         for (_element, modifiers) in self.elements {
             our_total += modifiers[Modifier::Provide];
         }
-        return ref_total as f32 * ratio / our_total as f32;
+        let strength = if correct_total < ref_total {
+            (correct_total - incorrect_total).max(0) as f32 / ref_total as f32
+        } else {
+            ref_total as f32 * ratio / our_total as f32
+        };
+        return strength * reference.strength;
     }
 
     pub fn advance_time(&mut self) -> Option<String> {

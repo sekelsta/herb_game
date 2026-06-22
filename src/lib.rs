@@ -117,8 +117,8 @@ impl World {
                 name: "Home Sweet Home",
                 description: "A simple hut with a cauldron and rack of drying herbs in the back.",
                 routes: enum_map!(
-                    East => Garden,
-                    South | Southeast | Southwest | West => FriendlyForest,
+                    West => Garden,
+                    South | Southeast | Southwest | East => FriendlyForest,
                     North | Northeast | Northwest => Village,
                 ),
                 current_herbs: Vec::new(),
@@ -126,15 +126,15 @@ impl World {
             },
             Garden => Region {
                 name: "Your Garden",
-                description: "You can plant seeds here.",
+                description: "Needs some work. You decide you'd rather keep foraging from the wild.\nA few herbs have survived from better-tended times, with occasional weeds sprouting around them.",
                 routes: enum_map!(
-                    West => Hut,
-                    East | Northeast => PineForest,
+                    East => Hut,
+                    West | Northwest => PineForest,
                     South | Southeast | Southwest => FriendlyForest,
-                    North | Northwest => Village,
+                    North | Northeast => Village,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
+                possible_herbs: vec!( &*DANDELION, &*FEVERFEW, &*DAFFODIL),
             },
             FriendlyForest => Region {
                 name: "Friendly Forest",
@@ -183,7 +183,7 @@ impl World {
                     _ => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*VIOLET, &*COLUMBINE, &*DAFFODIL, &*WINTERGREEN),// &*WHITE_TRILLIUM, &*LADY_FERN, &*YEW, &*DEADLY_NIGHTSHADE),
+                possible_herbs: vec!(&*VIOLET, &*COLUMBINE, &*WINTERGREEN),// &*WHITE_TRILLIUM, &*LADY_FERN, &*YEW, &*DEADLY_NIGHTSHADE),
             },
             WildflowerMeadow => Region {
                 name: "Wildflower Meadow",
@@ -389,6 +389,7 @@ impl World {
             None => {
                 let mut ingredient = ingredient.clone();
                 ingredient.container = Container::None;
+                ingredient.update_effect();
                 let descr = ingredient.show_in_progress();
                 let name = ingredient.full_name();
                 self.cauldron = Some(ingredient);
@@ -404,12 +405,12 @@ impl World {
         if addition.container == Container::Bottle {
             self.empty_bottles += 1;
         }
-        let mut added: Option<&str> = None;
+        let mut added: Option<String> = None;
         if self.cauldron.is_none() {
             if let Solvent::Water | Solvent::Ether | Solvent::Oil = addition.solvent {
                 return self.fill_cauldron(&addition);
             }
-            let added = Some(self.fill_cauldron(&WATER));
+            added = Some(self.fill_cauldron(&WATER));
         }
         let decocted = self.cauldron.as_mut().unwrap().decoct(&addition);
         match added {
