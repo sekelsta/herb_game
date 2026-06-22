@@ -50,7 +50,7 @@ pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
 
 use Element::*;
 use Effect::*;
-pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 27] = [
+pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 29] = [
     Lazy::new(|| Ingredient::new_potion("cough remedy", CoughRemedy, 1.0, |elements| {
         elements[Ice] = 2;
         elements[Thunder] = 2;
@@ -83,6 +83,12 @@ pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 27] = [
         elements[Air] = 3;
         elements[Ice] = 1;
         elements[Thunder] = 1;
+    })),
+    Lazy::new(|| Ingredient::new_potion("potion of cleanliness", Cleanliness, 1.0, |elements| {
+        elements[Void] = 6;
+        elements[Air] = 3;
+        elements[Light] = 2;
+        elements[Ice] = 1;
     })),
     Lazy::new(|| Ingredient::new_potion("potion of fear", Fear, 1.0, |elements| {
         elements[Ice] = 3;
@@ -175,6 +181,11 @@ pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 27] = [
     Lazy::new(|| Ingredient::new_potion("vial of poison", Poison, 1.0, |elements| {
         elements[Taint] = 6;
         elements[Air] = 2;
+    })),
+    Lazy::new(|| Ingredient::new_potion("vial of darkness", Darkness, 1.0, |elements| {
+        elements[Shadow] = 6;
+        elements[Taint] = 1;
+        elements[Thunder] = 1;
     })),
 ];
 
@@ -286,11 +297,13 @@ pub enum Effect {
     Charisma,
     Perception,
     Loveliness,
+    Cleanliness,
     Flame, 
     Lightning,
     Freeze,
     Shock,
     Poison,
+    Darkness,
 }
 
 impl Effect {
@@ -333,11 +346,13 @@ impl Effect {
             Charisma => 18,
             Perception => 15,
             Loveliness => 22,
+            Cleanliness => 18,
             Flame => 24, 
             Lightning => 25,
             Freeze => 26,
             Shock => 23,
             Poison => 13,
+            Darkness => 28,
         }
     }
 }
