@@ -479,7 +479,7 @@ impl World {
         let spirits_price = 8;
         let oil_price = 24;
         match params {
-            "bottle" => {
+            "bottle"|"b"|"" => {
                 if self.money < bottle_price {
                     return format!("You only have {} silver and can't afford {} for a bottle", self.money, bottle_price);
                 }
@@ -511,7 +511,22 @@ impl World {
         if self.current_region != RegionEnum::Village {
             return "There's no one here to sell to.".to_string()
         }
-        "selling not yet implemented".to_string()
+        if params == "bottle" {
+            if self.empty_bottles <= 0 {
+                return "You have no bottles to sell".to_string();
+            }
+            let value = Container::Bottle.sale_value();
+            self.empty_bottles -= 1;
+            self.money += value;
+            return format!("Sold a bottle for {} silver", value);
+        }
+        let item = match self.take_ingredient(params, |_| true) {
+            Ok(ingredient) => ingredient,
+            Err(result) => return result,
+        };
+        let value = item.sale_value();
+        self.money += value;
+        format!("Sold {} for {} silver pieces", item.full_name(), value)
     }
 
     fn advance_time(&mut self) -> String {

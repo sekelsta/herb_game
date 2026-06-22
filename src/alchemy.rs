@@ -226,6 +226,15 @@ pub enum Container {
     None,
 }
 
+impl Container {
+    pub fn sale_value(&self) -> i32 {
+        match self {
+            Container::Bottle => 1,
+            Container::None => 0,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum IngredientKind {
     FreshHerb,
@@ -289,6 +298,13 @@ impl Effect {
             CharmProtection => "Charm Protection".to_string(),
             PlantGrowth => "Plant Growth".to_string(),
             e => e.to_string(),
+        }
+    }
+
+    pub fn sale_value(&self) -> i32 {
+        use Effect::*;
+        match self {
+            _ => 0, // TODO
         }
     }
 }
@@ -408,6 +424,14 @@ impl Ingredient {
             return Some(&needle[self.name.len()+1..]);
         }
         return Some(needle);
+    }
+
+    pub fn sale_value(&self) -> i32 {
+        let base_value = match self.effect {
+            Some(effect) => (self.strength * effect.sale_value() as f32).round() as i32,
+            None => 0
+        };
+        base_value + self.container.sale_value()
     }
 
     pub fn boil(&mut self) -> String {
