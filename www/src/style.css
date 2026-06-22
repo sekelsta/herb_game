@@ -44,6 +44,9 @@ body {
 }
 
 #title {
+  margin-top: 0;
+  margin-bottom: 16px;
+
   font-size: 64px;
   user-select: none;
 
@@ -62,7 +65,7 @@ body {
   /* Set font-family here so we can specify height in ch. */
   font-family: "Courier New", Courier, monospace;
   line-height: 1.5;
-  height: calc(50ch + 2 * 12px);
+  height: calc(65ch + 2 * 12px);
 
   background-color: black;
   cursor: text;
