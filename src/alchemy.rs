@@ -304,7 +304,32 @@ impl Effect {
     pub fn sale_value(&self) -> i32 {
         use Effect::*;
         match self {
-            _ => 0, // TODO
+            CoughRemedy => 3,
+            FeverReducer => 4,
+            InsectRepellent => 5,
+            SnakeRepellent => 6,
+            CharmProtection => 7,
+            PlantGrowth => 4,
+            Love => 8,
+            Fear => 9,
+            Rage => 12,
+            Courage => 12,
+            Relaxation => 12,
+            Sleep => 12,
+            Paralysis => 14,
+            Intelligence => 16,
+            Strength => 14,
+            Patience => 12,
+            Resillience => 15,
+            Speed => 14,
+            Charisma => 18,
+            Perception => 15,
+            Loveliness => 22,
+            Flame => 24, 
+            Lightning => 25,
+            Freeze => 26,
+            Shock => 23,
+            Poison => 13,
         }
     }
 }
@@ -369,7 +394,7 @@ impl Ingredient {
     }
 
     pub fn inventory_view(&self) -> String {
-        format!("{} - {}", self.full_name(), self.display_elements())
+        format!("{} - {}. Sell: {}", self.full_name(), self.display_elements(), self.sale_value())
     }
 
     fn display_elements(&self) -> String {
@@ -428,7 +453,7 @@ impl Ingredient {
 
     pub fn sale_value(&self) -> i32 {
         let base_value = match self.effect {
-            Some(effect) => (self.strength * effect.sale_value() as f32).round() as i32,
+            Some(effect) => (self.strength * self.strength * effect.sale_value() as f32).round() as i32,
             None => 0
         };
         base_value + self.container.sale_value()

@@ -160,7 +160,7 @@ impl World {
             },
             Village => Region {
                 name: "Village Square",
-                description: "You can buy or sell things here.\nEmpty bottles cost 1 silver piece, spirits cost 8 and oil costs 24.",
+                description: "You can buy or sell things here.\nEmpty bottles cost 1 silver apiece, spirits cost 8 and oil costs 24.",
                 routes: enum_map!(
                     South => Hut,
                     North | Northeast | Northwest => Field,
@@ -526,6 +526,10 @@ impl World {
         };
         let value = item.sale_value();
         self.money += value;
+        match item.container {
+            Container::Bottle => { self.bottles_sold += 1; }
+            Container::None => (),
+        }
         format!("Sold {} for {} silver pieces", item.full_name(), value)
     }
 
@@ -537,7 +541,7 @@ impl World {
         self.satchel.append(&mut self.infusion_shelf);
         // Customers return bottles
         let prev_bottles = self.empty_bottles;
-        for i in 0..self.bottles_sold {
+        for _i in 0..self.bottles_sold {
             if rand::random_bool(0.5) {
                 self.empty_bottles += 1;
                 self.bottles_sold -= 1;
