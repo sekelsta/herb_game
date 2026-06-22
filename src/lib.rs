@@ -1,8 +1,6 @@
-use enum_map::{enum_map, Enum, EnumMap};
-use once_cell::sync::Lazy;
-use rand::seq::SliceRandom;
 use std::str::FromStr;
-use strum_macros::EnumString;
+use enum_map::EnumMap;
+use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 
 mod alchemy;
