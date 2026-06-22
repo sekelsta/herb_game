@@ -120,5 +120,11 @@ async function runCommand(input: string): Promise<string> {
 // ----------
 
 prepareOutput();
-await init();
-doOutput(welcome(), false);
+await Promise.all([
+  // WASM init
+  init(),
+  // Wait a bit before displaying the welcome text.
+  new Promise((resolve) => setTimeout(resolve, 500)),
+]);
+// Welcome text
+doOutput(welcome());
