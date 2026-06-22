@@ -361,8 +361,8 @@ impl World {
         }
         let bottles_returned = self.empty_bottles - prev_bottles;
         // Herbs regrow
-        for region in self.regions.values_mut() {
-            region.regrow();
+        for (e, region) in self.regions.iter_mut() {
+            region.regrow(&e);
         }
         match (herb_changes.as_str(), infused > 0, bottles_returned > 0) {
             ("", true, false) => format!("Completed {} infusions.", infused),
@@ -410,8 +410,11 @@ help - print this info".to_string()
 
 #[wasm_bindgen]
 pub fn welcome() -> String {
-    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!\nYou remember your trip in yesterday from the north, passing through the village. A local elder suggested you start looking for herbs in the forest to the south of your hut.\nType 'help' to list commands.".to_string()
+    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!\nYou remember your trip in yesterday from the NORTH, passing through the VILLAGE. Just north of the village was a field with a few plants you recognized, perfect for starting some experiments on.\nType a direction to travel, or 'help' to list commands.".to_string()
 }
+// Cut:
+// A local elder suggested you start looking for herbs in the forest to the southwest of your hut.
+// Can re-add
 
 #[wasm_bindgen]
 pub fn step(command: &str) -> String {

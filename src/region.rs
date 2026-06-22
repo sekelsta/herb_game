@@ -89,7 +89,6 @@ pub struct Region {
     pub description: &'static str,
     pub routes: EnumMap<Direction, RegionEnum>,
     pub current_herbs: Vec<Ingredient>,
-    possible_herbs: Vec<&'static Ingredient>,
     x: i32, y: i32,
 }
 
@@ -109,7 +108,6 @@ impl Region {
                     North | Northwest => Village,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
                 x: 19, y: 13,
             },
             Garden => Region {
@@ -122,7 +120,6 @@ impl Region {
                     North | Northeast => Village,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!( &*DANDELION, &*FEVERFEW, &*DAFFODIL),
                 x: 13, y: 13,
             },
             FriendlyForest => Region {
@@ -135,7 +132,6 @@ impl Region {
                     West | South | Southwest => FriendlyForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*VIOLET, &*ENCHANTERS_NIGHTSHADE, &*BLUEBELL, &*BURDOCK),// &*JACK_IN_THE_PULPIT, &*TROUT_LILY, &*WILD_STRAWBERRY, &*NEW_YORK_FERN),
                 x: 8, y: 16,
             },
             Village => Region {
@@ -149,7 +145,6 @@ impl Region {
                     West | Southwest => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: Vec::new(),
                 x: 15, y: 9,
             },
             Field => Region {
@@ -161,7 +156,6 @@ impl Region {
                     West | Northwest => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*HORSETAIL, &*DANDELION, &*PURSLANE, &*PETTY_SPURGE, &*WHITE_CLOVER, &*YARROW, &*HEALALL),// &*VELVETLEAF, &*FLEABANE, &*BLACK_NIGHTSHADE, &*BITTERSWEET),
                 x: 17, y: 3,
             },
             PineForest => Region {
@@ -173,7 +167,6 @@ impl Region {
                     _ => PineForest,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*VIOLET, &*COLUMBINE, &*WINTERGREEN),// &*WHITE_TRILLIUM, &*LADY_FERN, &*YEW, &*DEADLY_NIGHTSHADE),
                 x: 4, y: 3,
             },
             WildflowerMeadow => Region {
@@ -185,7 +178,6 @@ impl Region {
                     _ => WildflowerMeadow,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*BUTTERCUP, &*RED_CLOVER, &*OXEYE_DAISY, &*BULL_THISTLE, &*MILKWEED, &*HEALALL, &*FEVERFEW, &*YARROW),// &*SWEET_ANNIE, &*POISON_HEMLOCK, &*PASTURE_ROSE, &*CHAMOMILE, &*BORAGE, &*YELLOW_DOCK),
                 x: 30, y: 3,
             },
             MeadowRiver => Region {
@@ -199,7 +191,6 @@ impl Region {
                     _ => MeadowRiver,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*WATERMINT, &*HORSETAIL, &*COLTSFOOT),// &*TURTLEHEAD, &*JOE_PYE, &*MEADOW_ANEMONE, &*WILLOW, &*MARSH_MALLOW),
                 x: 31, y: 11,
             },
             ForestRiver => Region {
@@ -213,7 +204,6 @@ impl Region {
                     _ => ForestRiver,
                 ),
                 current_herbs: Vec::new(),
-                possible_herbs: vec!(&*JEWELWEED, &*SPOTTED_DEADNETTLE, &*COLTSFOOT, &*FOX_SEDGE, &*SKUNK_CABBAGE),// &*CINNAMON_FERN, &*MEADOWSWEET),
                 x: 19, y: 15,
             },
         )
@@ -223,18 +213,20 @@ impl Region {
         map_with_star(self.x, self.y)
     }
 
-    pub fn regrow(&mut self) {
+    pub fn regrow(&mut self, biome: &RegionEnum) {
         for i in (0..self.current_herbs.len()).rev() {
             if rand::random_bool(0.5) {
                 self.current_herbs.remove(i);
             }
         }
-        for &h in &self.possible_herbs {
-            if rand::random_bool(0.1) {
-                self.current_herbs.push(h.clone());
-            }
-            if rand::random_bool(0.1) {
-                self.current_herbs.push(h.clone());
+        for herb in REFERENCE_HERBS.iter() {
+            if herb.biomes.contains(biome) {
+                if rand::random_bool(0.1) {
+                    self.current_herbs.push(herb.to_ingredient());
+                }
+                if rand::random_bool(0.1) {
+                    self.current_herbs.push(herb.to_ingredient());
+                }
             }
         }
         self.current_herbs.shuffle(&mut rand::rng());

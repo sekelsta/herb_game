@@ -17,12 +17,13 @@ const TAINTABLE_ELEMENTS: [Element; 11] = [
     Element::Earth,
 ];
 
-const EVAPORABLE_ELEMENTS: [Element; 7] = [
+const EVAPORABLE_ELEMENTS: [Element; 8] = [
     Element::Void,
     Element::Air,
     Element::Spirit,
     Element::Light,
     Element::Fire,
+    Element::Shadow,
     Element::Water,
     Element::Mana,
 ];
@@ -369,20 +370,6 @@ pub struct Ingredient {
 }
 
 impl Ingredient {
-    pub fn new_herb(name: &'static str, toxicity: f32, f: impl Fn(&mut EnumMap<Element, EnumMap<Modifier, i32>>)) -> Self {
-        let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-        f(&mut elements);
-        Self {
-            name,
-            solvent: Solvent::Vivo,
-            container: Container::None,
-            elements,
-            effect: None,
-            strength: 0.0,
-            toxicity,
-        }
-    }
-
     pub fn new_potion(name: &'static str, effect: Effect, strength: f32, f: impl Fn(&mut EnumMap<Element, i32>)) -> Self {
         let mut elements_provided: EnumMap<Element, i32> = EnumMap::default();
         f(&mut elements_provided);
