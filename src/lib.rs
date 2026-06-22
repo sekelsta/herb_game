@@ -1,5 +1,6 @@
 use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
+use rand::seq::SliceRandom;
 use std::str::FromStr;
 use strum_macros::EnumString;
 use wasm_bindgen::prelude::*;
@@ -100,7 +101,7 @@ impl Region {
                 self.current_herbs.push(h.clone());
             }
         }
-        // TODO: Shuffle so herbs are not always found in the same order
+        self.current_herbs.shuffle(&mut rand::rng());
     }
 }
 

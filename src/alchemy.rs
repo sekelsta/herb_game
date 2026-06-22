@@ -394,7 +394,12 @@ impl Ingredient {
     }
 
     pub fn inventory_view(&self) -> String {
-        format!("{} - {}. Sell: {}", self.full_name(), self.display_elements(), self.sale_value())
+        let value = self.sale_value();
+        if value != 0 {
+            format!("{} - {}. Sell: {}", self.full_name(), self.display_elements(), value)
+        } else {
+            format!("{} - {}", self.full_name(), self.display_elements())
+        }
     }
 
     fn display_elements(&self) -> String {
