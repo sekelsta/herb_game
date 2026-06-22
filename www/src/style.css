@@ -14,7 +14,7 @@ body {
   justify-content: center;
 
   /* Background color*/
-  animation: pulse 80s infinite;
+  animation: pulse 320s infinite;
 }
 
 @keyframes pulse {

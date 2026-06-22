@@ -513,7 +513,7 @@ help - print this info".to_string()
 
 #[wasm_bindgen]
 pub fn welcome() -> String {
-    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!".to_string()
+    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!\nYou remember your trip in yesterday from the north, passing through the village. A local elder suggested you start looking for herbs in the forest to the south of your hut.\nType 'help' to list commands.".to_string()
 }
 
 #[wasm_bindgen]
