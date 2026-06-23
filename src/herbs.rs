@@ -48,9 +48,10 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         //moisture: [0.2, 0.8],
         toxicity: 0.0,
         elements: map_elements(&[
-            (Air, Provide, 2),
+            (Air, Provide, 3),
             (Fire, Provide, 1),
-            (Mana, Provide, 1),
+            (Earth, Provide, 2),
+            (Mana, Provide, 2),
         ]),
         biomes: vec!(Field, Garden, Village),
     },
@@ -62,6 +63,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
             (Air, Provide, 1),
             (Fire, Provide, 1),
             (Earth, Provide, 1),
+            // TODO: Make this more useful
         ]),
         biomes: vec!(Garden),
     },
@@ -88,7 +90,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
     },
     Herb {
         name: "wild basil", // Clinopodium vulgare
-        tier: 1,
+        tier: 0,
         toxicity: 0.0,
         elements: map_elements(&[
             (Air, Provide, 2),
@@ -99,10 +101,11 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
     },
     Herb {
         name: "yarrow",
-        tier: 3,
+        tier: 0,
         toxicity: 0.0,
         elements: map_elements(&[
             (Air, Provide, 4),
+            (Shadow, Strengthen, 3),
             (Earth, Provide, 2),
         ]),
         biomes: vec!(Field, WildflowerMeadow),
@@ -110,12 +113,13 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
 // ------ Tier 1 herbs ------ //
     Herb {
         name: "sunflower",
-        tier: 0,
+        tier: 1,
         toxicity: 0.0,
         elements: map_elements(&[
             (Light, Provide, 3),
             (Mana, Provide, 1),
             (Fire, Strengthen, 2),
+            (Ice, Strengthen, -3),
         ]),
         biomes: vec!(Field, Village, WildflowerMeadow),
     },
@@ -139,6 +143,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         toxicity: 0.3,
         elements: map_elements(&[
             (Light, Provide, 3),
+            // TODO
         ]),
         biomes: vec!(Garden, Village, FriendlyForest),
     },
@@ -147,6 +152,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         tier: 1,
         toxicity: 0.0,
         elements: map_elements(&[
+            // TODO
         ]),
         biomes: vec!(Village),
     },
@@ -157,6 +163,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         elements: map_elements(&[
             (Shadow, Provide, 2),
             (Shadow, Strengthen, 2),
+            // TODO
         ]),
         biomes: vec!(FriendlyForest, PineForest),
     },
@@ -165,6 +172,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         tier: 1,
         toxicity: 0.0,
         elements: map_elements(&[
+            // TODO
         ]),
         biomes: vec!(FriendlyForest),
     },
@@ -175,6 +183,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         elements: map_elements(&[
             (Fire, Provide, 1),
             (Light, Strengthen, 2),
+            // TODO
         ]),
         biomes: vec!(WildflowerMeadow),
     },

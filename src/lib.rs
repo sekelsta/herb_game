@@ -28,6 +28,11 @@ pub struct KnowledgeState {
     pub effects: EnumMap<Effect, bool>,
     pub herb_species: HashSet<&'static str>,
     pub herbs_gathered: u32,
+
+    // To next level
+    pub next_effects: usize,
+    pub next_species: usize,
+    pub next_gathered: u32,
 }
 
 impl KnowledgeState {
@@ -37,7 +42,36 @@ impl KnowledgeState {
             effects: EnumMap::default(),
             herb_species: HashSet::new(),
             herbs_gathered: 0,
+
+            next_effects: 2,
+            next_species: 5,
+            next_gathered: 24,
         }
+    }
+
+    pub fn count_effects(&self) -> usize {
+        self.effects.values().filter(|x| **x).count()
+    }
+
+    pub fn ready_to_advance(&self) -> bool {
+        self.herbs_gathered >= self.next_gathered && self.herb_species.len() >= self.next_species && self.count_effects() >= self.next_effects
+    }
+
+    pub fn update(&mut self) -> Option<String> {
+        if !self.ready_to_advance() {
+            return None;
+        }
+        self.herb_tier += 1;
+        match self.herb_tier {
+            1 => {
+                self.next_effects = 6;
+                self.next_species = 10;
+                self.next_gathered = 48;
+            }
+            // Max level
+            _ => (),
+        }
+        Some("You've learned to recognize new plant species!".to_string())
     }
 }
 
@@ -401,30 +435,42 @@ impl World {
         for (e, region) in self.regions.iter_mut() {
             region.regrow(&e);
         }
-        match (herb_changes.as_str(), infused > 0, bottles_returned > 0) {
-            ("", true, false) => format!("Completed {} infusions.", infused),
-            (_, true, false) => format!("{0}\nCompleted {1} infusions.", herb_changes, infused),
-            ("", false, false) => "You wake refreshed.".to_string(),
-            (_, false, false) => herb_changes,
-            ("", true, true) => format!("Completed {} infusions.\nCustomers returned {} empty bottles.", infused, bottles_returned),
-            (_, true, true) => format!("{0}\nCompleted {1} infusions.\nCustomers returned {2} empty bottles.", herb_changes, infused, bottles_returned),
-            ("", false, true) => format!("Customers returned {} empty bottles.", bottles_returned),
-            (_, false, true) => format!("{}\nCustomers returned {} empty bottles.", herb_changes, bottles_returned),
+        let xp = self.discoveries.update();
+        let mut response = Vec::new();
+        if !herb_changes.is_empty() {
+            response.push(herb_changes);
         }
+        if infused > 0 {
+            response.push(format!("Completed {} infusions.", infused));
+        }
+        if bottles_returned > 0 {
+            response.push(format!("Customers returned {} empty bottles.", bottles_returned));
+        }
+        if let Some(x) = xp {
+            response.push(x);
+        }
+
+        if response.is_empty() {
+            return "You wake refreshed.".to_string();
+        }
+        response.join("\n")
     }
 
     fn experience(&self) -> String {
-        let effects = self.discoveries.effects.values().filter(|x| **x).count();
+        let effects = self.discoveries.count_effects();
         let species = self.discoveries.herb_species.len();
         let gathered = self.discoveries.herbs_gathered;
+        let d = &self.discoveries;
         if effects == 0 {
-            if gathered == 0 && effects == 0 {
+            if gathered == 0 {
                 return "You haven't started yet.".to_string();
             }
-            return format!("Gathered {}/{} herbs of {}/{} species. No potions brewed.", gathered, 24, species, 5);
+            return format!("Gathered {}/{} herbs of {}/{} species. No potions brewed.", gathered, d.next_gathered, species, d.next_species);
         }
-        // TODO: Don't hardcode these numbers, and make the result true
-        format!("Gathered {}/{} herbs of {}/{} species and brewed potions with {}/{} unique effects.", gathered, 24, species, 5, effects, 3)
+        if d.ready_to_advance() {
+            return "You've had a long day. Try sleeping on it.".to_string();
+        }
+        format!("Gathered {}/{} herbs of {}/{} species and brewed potions with {}/{} unique effects.", gathered, d.next_gathered, species, d.next_species, effects, d.next_effects)
     }
 
     fn look(&mut self) -> String {
@@ -490,7 +536,7 @@ pub fn step(command: &str) -> String {
         match verb {
             "go"|"travel"|"to"|"the" => step(&params),
             "wait"|"advance"|"sleep" => world.advance_time(),
-            "inv"|"inventory"|"satchel" => world.list_inventory(),
+            "inv"|"inventory"|"satchel"|"list" => world.list_inventory(),
             "gather"|"forage"|"collect" => world.forage(&params),
             "brew"|"decoct"|"cauldron" => {
                 if params == "" {
