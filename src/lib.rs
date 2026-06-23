@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::str::FromStr;
 use enum_map::EnumMap;
 use once_cell::sync::Lazy;
@@ -25,7 +26,8 @@ That's about all you need to know to get started. I encourage you to experiment 
 pub struct KnowledgeState {
     pub herb_tier: i32,
     pub effects: EnumMap<Effect, bool>,
-    // TODO: Include discovered elements and modifiers if I can figure out a good way to have game logic unlock them
+    pub herb_species: HashSet<&'static str>,
+    pub herbs_gathered: u32,
 }
 
 impl KnowledgeState {
@@ -33,6 +35,8 @@ impl KnowledgeState {
         KnowledgeState {
             herb_tier: 0,
             effects: EnumMap::default(),
+            herb_species: HashSet::new(),
+            herbs_gathered: 0,
         }
     }
 }
@@ -124,6 +128,8 @@ impl World {
             return "You don't recognize this plant.".to_string();
         }
         let result = format!("You collected {}.", found.name);
+        self.discoveries.herb_species.insert(found.name);
+        self.discoveries.herbs_gathered += 1;
         self.satchel.push(found.to_ingredient());
         result        
     }
@@ -407,6 +413,20 @@ impl World {
         }
     }
 
+    fn experience(&self) -> String {
+        let effects = self.discoveries.effects.values().filter(|x| **x).count();
+        let species = self.discoveries.herb_species.len();
+        let gathered = self.discoveries.herbs_gathered;
+        if effects == 0 {
+            if gathered == 0 && effects == 0 {
+                return "You haven't started yet.".to_string();
+            }
+            return format!("Gathered {}/{} herbs of {}/{} species. No potions brewed.", gathered, 24, species, 5);
+        }
+        // TODO: Don't hardcode these numbers, and make the result true
+        format!("Gathered {}/{} herbs of {}/{} species and brewed potions with {}/{} unique effects.", gathered, 24, species, 5, effects, 3)
+    }
+
     fn look(&mut self) -> String {
         let region = &self.regions[self.current_region];
         format!("{}\n{}\n{}", region.name, region.description, region.status(&self.discoveries))
@@ -436,6 +456,7 @@ dump - empty out the cauldron and get rid of the contents
 sleep - advances time, allowing herbs to regrow, infusions to infuse, and fresh herbs to dry out
 sell [item] - exchange goods for money at the village market
 buy [item] - same deal, but money for goods
+xp - tells you how close you are to learning something new
 help - print this info".to_string()
 }
 
@@ -487,6 +508,7 @@ pub fn step(command: &str) -> String {
             "stir" => world.stir(),
             "sell" => world.sell(&params),
             "buy" => world.buy(&params),
+            "exp"|"xp" => world.experience(),
             "map" | "surroundings" => world.regions[world.current_region].local_map(),
             "book"|"textbook"|"alchemy" => ALCHEMY_BOOK.to_string(),
             "look" => world.look(),
