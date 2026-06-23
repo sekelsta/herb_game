@@ -54,13 +54,20 @@ impl KnowledgeState {
         self.herb_tier += 1;
         match self.herb_tier {
             1 => {
-                self.next_effects = 6;
-                self.next_species = 10;
-                self.next_gathered = 48;
+                self.next_effects = 5;
+                self.next_species = 8;
+                self.next_gathered = 24;
+                // TODO: Add custom per-tier suggestions on where to explore next
+                Some("You've learned to recognize new plant species!".to_string())
+            },
+            2 => {
+                self.next_effects = 8;
+                self.next_species = 12;
+                self.next_gathered = 32;
                 Some("You've learned to recognize new plant species!".to_string())
             },
             // Max level
-            x if x >= self.max_tier => None,
+            x if x >= self.max_tier => Some("You've learned to recognize new plant species!".to_string()),
             // Shouldn't happen, but don't crash if it does
             _ => Some("Bug the developer to fix herb tiers.".to_string()),
         }
