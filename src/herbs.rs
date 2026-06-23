@@ -50,8 +50,8 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         elements: map_elements(&[
             (Air, Provide, 3),
             (Fire, Provide, 1),
-            (Earth, Provide, 2),
-            (Mana, Provide, 2),
+            (Mana, Strengthen, 2),
+            (Earth, Strengthen, 2),
         ]),
         biomes: vec!(Field, Garden, Village),
     },

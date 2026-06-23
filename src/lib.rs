@@ -45,7 +45,7 @@ impl KnowledgeState {
 
             next_effects: 2,
             next_species: 5,
-            next_gathered: 24,
+            next_gathered: 12,
         }
     }
 
