@@ -174,7 +174,7 @@ impl Region {
                 description: "Tall grass for haying, interrupted by colorful flowers.",
                 routes: enum_map!(
                     West | Southwest => Field,
-                    South | Southeast | East => MeadowRiver,
+                    South | Southeast => MeadowRiver,
                     _ => WildflowerMeadow,
                 ),
                 current_herbs: Vec::new(),
