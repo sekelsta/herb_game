@@ -7,12 +7,12 @@ use crate::Modifier::*;
 use crate::RegionEnum::*;
 
 pub struct Herb {
-    name: &'static str,
-    tier: i32,
-    //sun: [f32; 2],
-    //moisture: [f32; 2],
-    toxicity: f32,
-    elements: EnumMap<Element, EnumMap<Modifier, i32>>,
+    pub name: &'static str,
+    pub tier: i32,
+    //pub sun: [f32; 2],
+    //pub moisture: [f32; 2],
+    pub toxicity: f32,
+    pub elements: EnumMap<Element, EnumMap<Modifier, i32>>,
     pub biomes: Vec<RegionEnum>,
 }
 
@@ -107,9 +107,6 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         ]),
         biomes: vec!(Field, WildflowerMeadow),
     },
-));
-
-pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
 // ------ Tier 1 herbs ------ //
     Herb {
         name: "sunflower",
@@ -150,7 +147,6 @@ pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         tier: 1,
         toxicity: 0.0,
         elements: map_elements(&[
-            todo!()
         ]),
         biomes: vec!(Village),
     },
@@ -169,7 +165,6 @@ pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         tier: 1,
         toxicity: 0.0,
         elements: map_elements(&[
-            todo!()
         ]),
         biomes: vec!(FriendlyForest),
     },
@@ -194,6 +189,9 @@ pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         ]),
         biomes: vec!(FriendlyForest),
     },
+));
+
+pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
 // ------ Tier 2 herbs ------ //
     Herb {
         name: "watercress",
@@ -527,5 +525,5 @@ pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
 // ForestRiver: vec!(&*CINNAMON_FERN, &*MEADOWSWEET),
 
 
-// Plus sow thistle, chickweed, field mustard, poor man's pepper, lamb's quarters, wintercress, greenbriar, carrion flower
+// Plus sow thistle, chickweed, field mustard, poor man's pepper, lamb's quarters, wintercress, greenbriar, carrion flower, st john's wort, evening primrose, ragwort, ragweed
 

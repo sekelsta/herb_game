@@ -2,6 +2,7 @@ use enum_map::{enum_map, Enum, EnumMap};
 use rand::seq::SliceRandom;
 use strum_macros::EnumString;
 
+use crate::KnowledgeState;
 use crate::alchemy::*;
 use crate::herbs::*;
 
@@ -88,7 +89,7 @@ pub struct Region {
     pub name: &'static str,
     pub description: &'static str,
     pub routes: EnumMap<Direction, RegionEnum>,
-    pub current_herbs: Vec<Ingredient>,
+    pub current_herbs: Vec<&'static Herb>,
     x: i32, y: i32,
 }
 
@@ -221,14 +222,23 @@ impl Region {
         }
         for herb in REFERENCE_HERBS.iter() {
             if herb.biomes.contains(biome) {
-                if rand::random_bool(0.1) {
-                    self.current_herbs.push(herb.to_ingredient());
+                let chance = (5 - herb.tier) as f64 / 15.0; // Written when highest herb tier is 3
+                if rand::random_bool(chance) {
+                    self.current_herbs.push(herb);
                 }
-                if rand::random_bool(0.1) {
-                    self.current_herbs.push(herb.to_ingredient());
+                if rand::random_bool(chance) {
+                    self.current_herbs.push(herb);
+                    self.current_herbs.push(herb);
                 }
             }
         }
         self.current_herbs.shuffle(&mut rand::rng());
+    }
+
+    pub fn status(&self, discoveries: &KnowledgeState) -> String {
+        if self.current_herbs.iter().any(|h| h.tier <= discoveries.herb_tier) {
+            return "You spot some herbs you recognize.".to_string();
+        }
+        "".to_string()
     }
 }

@@ -9,6 +9,7 @@ mod region;
 
 use crate::alchemy::*;
 use crate::region::*;
+use crate::herbs::*;
 
 static mut WORLD: Lazy<World> = Lazy::new(World::new);
 
@@ -21,6 +22,10 @@ So how do you actually brew a potion? Start with a liquid base, usually water bu
 Infusions are if anything simpler than decoctions. Put your herb right into a bottle with any liquid base, and leave it in a cool dark place, perhaps a shelf, while you sleep. After enough time has passed you will see that the liquid has taken on some of the color of the plant. This indicates that the plant's elemental energies have leached into the liquid, and your infusion is ready to be filtered and put to use. You can make potions directly as infusions, you can add them to your boiling decoctions in place of the herb, or you can even add another herb and infuse again. You can also infuse an herb into a decoction, with or without existing potion effects, to add to the elements and potentially create a new potion out of it. Note that infusing an herb and decocting an herb will not have quite the same effect. Only elements the herb provides directly will be available to create potion effects on the infusion. Herbs which strengthen existing elements will not do so when added to an infusion. Another thing to note is that more of the elemental energy stays with the plant compared to a decoction. Certain types of elements, if they are not soluble in your chosen base, will not become available at all. This can be used to your advantage to purify the remaining elements, and can allow for higher quality potions if you know what you're doing.
 That's about all you need to know to get started. I encourage you to experiment for youself to discover what effects you can create. With trial and error you'll be able to refine your recipes, and as you go on you'll discover cheaper and more effective combinations of ingredients. Good luck!";
 
+pub struct KnowledgeState {
+    pub herb_tier: i32,
+    // TODO: Include discovered elements and modifiers if I can figure out a good way to have game logic unlock them
+}
 
 
 pub struct World {
@@ -33,6 +38,7 @@ pub struct World {
     pub money: i32,
     pub infusion_shelf: Vec<Ingredient>,
     pub cauldron: Option<Ingredient>,
+    pub discoveries: KnowledgeState,
 }
 
 impl World {
@@ -47,6 +53,7 @@ impl World {
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
             cauldron: None,
+            discoveries: KnowledgeState { herb_tier: 0, },
         };
         world.advance_time();
         world
@@ -86,14 +93,28 @@ impl World {
     }
 
     fn forage(&mut self, params: &str) -> String {
+        if REFERENCE_HERBS.iter().all(|h| !h.biomes.contains(&self.current_region)) {
+            return "Nothing grows here.".to_string();
+        }
         let available = &mut self.regions[self.current_region].current_herbs;
         if available.len() == 0 {
-            return "You found nothing.".to_string();
+            return "The area is picked clean.".to_string();
         }
-        let pos = available.iter().position(|x| x.matches_name(params)).or(Some(0)).unwrap();
+        if params != "" && REFERENCE_HERBS.iter().find(|h| h.name == params).map_or(false, |h| h.tier > self.discoveries.herb_tier) {
+            return format!("You don't know what '{}' looks like.", params);
+        }
+        if available.iter().all(|h| h.tier > self.discoveries.herb_tier) {
+            return "You don't recognize any herbs here.".to_string();
+        }
+        let pos = available.iter().position(|h| h.name == params).or(Some(0)).unwrap();
         let found = available.remove(pos);
-        let result = format!("You collected {}.", found.full_name());
-        self.satchel.push(found);
+        if found.tier > self.discoveries.herb_tier {
+            // Return it to the back.
+            available.push(found);
+            return "You don't recognize this plant.".to_string();
+        }
+        let result = format!("You collected {}.", found.name);
+        self.satchel.push(found.to_ingredient());
         result        
     }
 
@@ -378,7 +399,7 @@ impl World {
 
     fn look(&mut self) -> String {
         let region = &self.regions[self.current_region];
-        format!("{}\n{}", region.name, region.description)
+        format!("{}\n{}\n{}", region.name, region.description, region.status(&self.discoveries))
     }
 }
 
