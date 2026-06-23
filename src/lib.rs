@@ -397,20 +397,7 @@ impl World {
     }
 
     fn experience(&self) -> String {
-        let effects = self.discoveries.count_effects();
-        let species = self.discoveries.herb_species.len();
-        let gathered = self.discoveries.herbs_gathered;
-        let d = &self.discoveries;
-        if effects == 0 {
-            if gathered == 0 {
-                return "You haven't started yet.".to_string();
-            }
-            return format!("Gathered {}/{} herbs of {}/{} species. No potions brewed.", gathered, d.next_gathered, species, d.next_species);
-        }
-        if d.ready_to_advance() {
-            return "You've had a long day. Try sleeping on it.".to_string();
-        }
-        format!("Gathered {}/{} herbs of {}/{} species and brewed potions with {}/{} unique effects.", gathered, d.next_gathered, species, d.next_species, effects, d.next_effects)
+        self.discoveries.status()
     }
 
     fn look(&mut self) -> String {
@@ -494,7 +481,7 @@ pub fn step(command: &str) -> String {
             "stir" => world.stir(),
             "sell" => world.sell(&params),
             "buy" => world.buy(&params),
-            "exp"|"xp" => world.experience(),
+            "exp"|"xp"|"status" => world.experience(),
             "map" | "surroundings" => world.regions[world.current_region].local_map(),
             "book"|"textbook"|"alchemy" => ALCHEMY_BOOK.to_string(),
             "look" => world.look(),

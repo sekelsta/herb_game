@@ -17,6 +17,7 @@ pub struct KnowledgeState {
     pub herb_species: HashSet<&'static str>,
     pub herbs_gathered: u32,
 
+    pub max_tier: i32,
     // To next level
     pub next_effects: usize,
     pub next_species: usize,
@@ -31,6 +32,7 @@ impl KnowledgeState {
             herb_species: HashSet::new(),
             herbs_gathered: 0,
 
+            max_tier: 3,
             next_effects: 2,
             next_species: 5,
             next_gathered: 12,
@@ -55,10 +57,31 @@ impl KnowledgeState {
                 self.next_effects = 6;
                 self.next_species = 10;
                 self.next_gathered = 48;
-            }
+                Some("You've learned to recognize new plant species!".to_string())
+            },
             // Max level
-            _ => (),
+            x if x >= self.max_tier => None,
+            // Shouldn't happen, but don't crash if it does
+            _ => Some("Bug the developer to fix herb tiers.".to_string()),
         }
-        Some("You've learned to recognize new plant species!".to_string())
+    }
+
+    pub fn status(&self) -> String {
+        let effects = self.count_effects();
+        let species = self.herb_species.len();
+        let gathered = self.herbs_gathered;
+        if self.herb_tier >= self.max_tier {
+            return "You've learned everything. Good job!".to_string();
+        }
+        if effects == 0 {
+            if gathered == 0 {
+                return "You haven't started yet.".to_string();
+            }
+            return format!("Gathered {}/{} herbs of {}/{} species. No potions brewed.", gathered, self.next_gathered, species, self.next_species);
+        }
+        if self.ready_to_advance() {
+            return "You've had a long day. Try sleeping on it.".to_string();
+        }
+        format!("Gathered {}/{} herbs of {}/{} species and brewed potions with {}/{} unique effects.", gathered, self.next_gathered, species, self.next_species, effects, self.next_effects)
     }
 }
