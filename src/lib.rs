@@ -24,7 +24,17 @@ That's about all you need to know to get started. I encourage you to experiment 
 
 pub struct KnowledgeState {
     pub herb_tier: i32,
+    pub effects: EnumMap<Effect, bool>,
     // TODO: Include discovered elements and modifiers if I can figure out a good way to have game logic unlock them
+}
+
+impl KnowledgeState {
+    pub fn new() -> Self {
+        KnowledgeState {
+            herb_tier: 0,
+            effects: EnumMap::default(),
+        }
+    }
 }
 
 
@@ -53,7 +63,7 @@ impl World {
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
             cauldron: None,
-            discoveries: KnowledgeState { herb_tier: 0, },
+            discoveries: KnowledgeState::new(),
         };
         world.advance_time();
         world
@@ -211,7 +221,7 @@ impl World {
 
     fn stir(&mut self) -> String {
         if self.has_cauldron() { match &mut self.cauldron {
-            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(), ingredient.show_in_progress()),
+            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(&mut self.discoveries), ingredient.show_in_progress()),
             None => "The cauldron is empty.".to_string(),
         }} else {
             "You see nothing to stir.".to_string()
@@ -227,7 +237,7 @@ impl World {
             None => {
                 let mut ingredient = ingredient.clone();
                 ingredient.container = Container::None;
-                ingredient.update_effect();
+                ingredient.update_effect(&mut self.discoveries);
                 let descr = ingredient.show_in_progress();
                 let name = ingredient.full_name();
                 self.cauldron = Some(ingredient);
@@ -250,7 +260,7 @@ impl World {
             }
             added = Some(self.fill_cauldron(&WATER));
         }
-        let decocted = self.cauldron.as_mut().unwrap().decoct(&addition);
+        let decocted = self.cauldron.as_mut().unwrap().decoct(&addition, &mut self.discoveries);
         match added {
             Some(added) => format!("{}\n{}", added, decocted),
             None => decocted,
@@ -294,7 +304,7 @@ impl World {
                 Err(result) => return result,
             },
         }
-        let result = base.infuse(&addition);
+        let result = base.infuse(&addition, &mut self.discoveries);
         self.infusion_shelf.push(base);
         format!("Bottle of [{}] added to shelf to infuse over time.", result)
     }

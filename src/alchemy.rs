@@ -1,7 +1,8 @@
 use std::fmt;
+use enum_map::{Enum, EnumMap};
 use once_cell::sync::Lazy;
 
-use enum_map::{Enum, EnumMap};
+use crate::KnowledgeState;
 
 const TAINTABLE_ELEMENTS: [Element; 11] = [
     Element::Mana,
@@ -274,7 +275,7 @@ impl fmt::Display for IngredientKind {
     }
 }
 
-#[derive(Clone, Copy, Debug, strum_macros::Display)]
+#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
 pub enum Effect {
     CoughRemedy,
     FeverReducer,
@@ -474,7 +475,7 @@ impl Ingredient {
         base_value + self.container.sale_value()
     }
 
-    pub fn boil(&mut self) -> String {
+    pub fn boil(&mut self, discoveries: &mut KnowledgeState) -> String {
         // Evaporation
         let mut evaporated = None;
         for e in EVAPORABLE_ELEMENTS {
@@ -504,7 +505,7 @@ impl Ingredient {
                 taint_spread = true;
             }
         }
-        self.update_effect();
+        self.update_effect(discoveries);
         match (taint_spread, evaporated) {
             (false, None) => "The cauldron boils.".to_string(),
             (false, Some(e)) => format!("The cauldron boils. Elemental {} evaporates.", e.to_string().to_lowercase()),
@@ -513,27 +514,27 @@ impl Ingredient {
         }
     }
 
-    pub fn decoct(&mut self, addition: &Ingredient) -> String {
-        format!("{}\n{}", self.boil(), { self.apply(addition); self.show_in_progress() })
+    pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
+        format!("{}\n{}", self.boil(discoveries), { self.apply(addition, discoveries); self.show_in_progress() })
     }
 
-    pub fn infuse(&mut self, addition: &Ingredient) -> String {
+    pub fn infuse(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
         self.name = addition.name;
         let mut ingredient = addition.clone();
         ingredient.discard_insoluble(&self.solvent);
         ingredient.halve();
-        self.add(&ingredient);
+        self.add(&ingredient, discoveries);
         self.show_in_progress()
     }
 
-    pub fn add(&mut self, ingredient: &Ingredient) {
+    pub fn add(&mut self, ingredient: &Ingredient, discoveries: &mut KnowledgeState) {
         self.toxicity += ingredient.toxicity;
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
                 self.elements[element][modifier] += amount;
             }
         }
-        self.update_effect();
+        self.update_effect(discoveries);
     }
 
     pub fn halve(&mut self) {
@@ -560,7 +561,7 @@ impl Ingredient {
         }
     }
 
-    pub fn apply(&mut self, ingredient: &Ingredient) {
+    pub fn apply(&mut self, ingredient: &Ingredient, discoveries: &mut KnowledgeState) {
         self.toxicity += ingredient.toxicity;
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
@@ -572,16 +573,17 @@ impl Ingredient {
                 }
             }
         }
-        self.update_effect();
+        self.update_effect(discoveries);
     }
 
-    pub fn update_effect(&mut self) {
+    pub fn update_effect(&mut self, discoveries: &mut KnowledgeState) {
         for potion in &REFERENCE_POTIONS {
             let effectiveness = self.calc_strength(&potion);
             if effectiveness > self.strength {
                 self.strength = effectiveness;
                 self.effect = potion.effect;
                 self.name = potion.name;
+                discoveries.effects[potion.effect.expect("All reference potions have an effect")] = true;
             }
         }
     }

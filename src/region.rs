@@ -3,7 +3,6 @@ use rand::seq::SliceRandom;
 use strum_macros::EnumString;
 
 use crate::KnowledgeState;
-use crate::alchemy::*;
 use crate::herbs::*;
 
 const MAP: &str = r#"Surroundings:

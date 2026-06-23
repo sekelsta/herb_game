@@ -1,4 +1,4 @@
-use enum_map::{enum_map, Enum, EnumMap};
+use enum_map::EnumMap;
 use once_cell::sync::Lazy;
 
 use crate::{Container, Element, Ingredient, Modifier, RegionEnum, Solvent};
