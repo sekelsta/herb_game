@@ -50,8 +50,8 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         elements: map_elements(&[
             (Air, Provide, 3),
             (Fire, Provide, 1),
+            (Earth, Provide, 2),
             (Mana, Strengthen, 2),
-            (Earth, Strengthen, 2),
         ]),
         biomes: vec!(Field, Garden, Village),
     },
@@ -63,7 +63,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
             (Air, Provide, 1),
             (Fire, Provide, 1),
             (Earth, Provide, 1),
-            // TODO: Make this more useful
+            (Taint, Strengthen, -2),
         ]),
         biomes: vec!(Garden),
     },
@@ -84,7 +84,9 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         toxicity: 0.0,
         elements: map_elements(&[
             (Fire, Provide, 1),
+            (Earth, Stabilize, 2),
             (Light, Strengthen, 2),
+            // TODO
         ]),
         biomes: vec!(Field, WildflowerMeadow),
     },
@@ -138,6 +140,21 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         biomes: vec!(Garden, Village),
     },
     Herb {
+        name: "bluebell",
+        tier: 1,
+        toxicity: 0.3,
+        elements: map_elements(&[
+            (Mana, Provide, 2),
+            (Void, Provide, 2),
+            (Taint, Provide, 1),
+        ]),
+        biomes: vec!(FriendlyForest),
+    },
+));
+
+pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
+// ------ Tier 1 herbs ------ //
+    Herb {
         name: "daffodil",
         tier: 1,
         toxicity: 0.3,
@@ -187,20 +204,6 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         ]),
         biomes: vec!(WildflowerMeadow),
     },
-    Herb {
-        name: "bluebell",
-        tier: 1,
-        toxicity: 0.3,
-        elements: map_elements(&[
-            (Mana, Provide, 2),
-            (Void, Provide, 2),
-            (Taint, Provide, 1),
-        ]),
-        biomes: vec!(FriendlyForest),
-    },
-));
-
-pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
 // ------ Tier 2 herbs ------ //
     Herb {
         name: "watercress",
