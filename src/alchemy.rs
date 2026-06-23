@@ -443,7 +443,7 @@ impl Ingredient {
 
     pub fn show_in_progress(&self) -> String {
         match &self.effect {
-            Some(effect) => format!("{:?} base: {}. Effect: {} ({:.1}% strength)", self.solvent, self.display_elements(), effect.to_title_case(), self.strength * 100.0),
+            Some(effect) => format!("{:?} base: {}. Effect: {} ({}% strength)", self.solvent, self.display_elements(), effect.to_title_case(), (self.strength * 100.0).round() as i32),
             None => format!("{:?} base: {}", self.solvent, self.display_elements()),
         }
     }
