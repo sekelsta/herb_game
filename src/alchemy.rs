@@ -1,4 +1,3 @@
-use std::fmt;
 use enum_map::{Enum, EnumMap};
 use once_cell::sync::Lazy;
 
@@ -113,28 +112,6 @@ impl Container {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum IngredientKind {
-    FreshHerb,
-    DryHerb,
-    Decoction, // Boil for herbal tea
-    Infusion, // Cold soak
-    Tincture, // Soak in alcohol
-    Oil, // Or essence. Mild heat to speed up extraction, or cold to preserve aromatics
-    Salve, // Add wax to the oil
-    Poultice,
-    Incense, // For resins, or Smudge for leaves/flowers
-    Smudge,
-    Ash,
-    Salt,
-}
-
-impl fmt::Display for IngredientKind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct Ingredient {
     pub name: &'static str,
@@ -147,24 +124,6 @@ pub struct Ingredient {
 }
 
 impl Ingredient {
-    pub fn new_potion(name: &'static str, effect: Effect, strength: f32, f: impl Fn(&mut EnumMap<Element, i32>)) -> Self {
-        let mut elements_provided: EnumMap<Element, i32> = EnumMap::default();
-        f(&mut elements_provided);
-        let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-        for (element, amount) in elements_provided {
-            elements[element][Modifier::Provide] = amount;
-        }
-        Self {
-            name,
-            solvent: Solvent::Water,
-            container: Container::Bottle,
-            elements,
-            effect: Some(effect),
-            strength,
-            toxicity: 0.0,
-        }
-    }
-
     pub fn full_name(&self) -> String {
         let name = match self.solvent {
             Solvent::Air => format!("dry {}", self.name),
@@ -354,43 +313,14 @@ impl Ingredient {
 
     pub fn update_effect(&mut self, discoveries: &mut KnowledgeState) {
         for potion in &*REFERENCE_POTIONS {
-            let effectiveness = self.calc_strength(&potion);
+            let effectiveness = potion.calc_strength(self);
             if effectiveness > self.strength {
                 self.strength = effectiveness;
-                self.effect = potion.effect;
+                self.effect = Some(potion.effect);
                 self.name = potion.name;
-                discoveries.effects[potion.effect.expect("All reference potions have an effect")] = true;
+                discoveries.effects[potion.effect] = true;
             }
         }
-    }
-
-    pub fn calc_strength(&self, reference: &Ingredient) -> f32 {
-        let mut ref_total = 0;
-        let mut correct_total = 0;
-        let mut incorrect_total = 0;
-        let mut ratio: f32 = 10.0; // Max strength before being more concentrated starts counting against you even in the correct ratio
-        for (element, modifiers) in reference.elements {
-            let theirs = modifiers[Modifier::Provide];
-            let ours = self.elements[element][Modifier::Provide];
-            // Allow up to one of each element to be missing
-            if theirs > ours + 1 {
-                return 0.0;
-            }
-            ref_total += theirs;
-            correct_total += theirs.min(ours);
-            incorrect_total += (theirs - ours).abs();
-            ratio = ratio.min(ours as f32 / theirs as f32).max(1.0);
-        }
-        let mut our_total = 0;
-        for (_element, modifiers) in self.elements {
-            our_total += modifiers[Modifier::Provide];
-        }
-        let strength = if correct_total < ref_total {
-            (correct_total - incorrect_total).max(0) as f32 / ref_total as f32
-        } else {
-            ref_total as f32 * ratio / our_total as f32
-        };
-        return strength * reference.strength;
     }
 
     pub fn advance_time(&mut self) -> Option<String> {
