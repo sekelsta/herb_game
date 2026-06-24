@@ -16,6 +16,7 @@ pub struct KnowledgeState {
     pub effects: EnumMap<Effect, bool>,
     pub herb_species: HashSet<&'static str>,
     pub herbs_gathered: u32,
+    pub stability_known: bool,
 
     pub max_tier: i32,
     // To next level
@@ -31,6 +32,7 @@ impl KnowledgeState {
             effects: EnumMap::default(),
             herb_species: HashSet::new(),
             herbs_gathered: 0,
+            stability_known: false,
 
             max_tier: 3,
             next_effects: 2,

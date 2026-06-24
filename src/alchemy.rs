@@ -139,16 +139,17 @@ impl Ingredient {
         }
     }
 
-    pub fn inventory_view(&self) -> String {
+    pub fn inventory_view(&self, discoveries: &KnowledgeState) -> String {
         let value = self.sale_value();
-        if value != 0 {
-            format!("{} - {}. Sell: {}", self.full_name(), self.display_elements(), value)
-        } else {
-            format!("{} - {}", self.full_name(), self.display_elements())
+        let elements = self.display_elements(discoveries);
+        match (self.effect, value != 0) {
+            (Some(effect), _) => format!("{} - {}. Effect: {} at {}% strength. Sell: {}", self.full_name(), elements, effect, (self.strength * 100.0).round() as i32, value),
+            (None, true) => format!("{} - {}. Sell: {}", self.full_name(), elements, value),
+            (None, false) => format!("{} - {}", self.full_name(), elements),
         }
     }
 
-    fn display_elements(&self) -> String {
+    fn display_elements(&self, discoveries: &KnowledgeState) -> String {
         let mut string = "".to_string();
         let mut any = false;
         for (element, status) in self.elements {
@@ -162,7 +163,7 @@ impl Ingredient {
                 string.push_str(", ");
             }
             any = true;
-            match (strengthen == 0, stability == 0) {
+            match (strengthen == 0, stability == 0 || !discoveries.stability_known) {
                 (true, true) => string.push_str(format!("{} {:?}", provide, element).as_str()),
                 (true, false) => string.push_str(format!("{} {:?} ({:+} stability)", provide, element, stability).as_str()),
                 (false, true) => string.push_str(format!("{} ({:+}) {:?}", provide, strengthen, element).as_str()),
@@ -176,10 +177,10 @@ impl Ingredient {
         }
     }
 
-    pub fn show_in_progress(&self) -> String {
+    pub fn show_in_progress(&self, discoveries: &KnowledgeState) -> String {
         match &self.effect {
-            Some(effect) => format!("{:?} base: {}. Effect: {} ({}% strength)", self.solvent, self.display_elements(), effect.to_title_case(), (self.strength * 100.0).round() as i32),
-            None => format!("{:?} base: {}", self.solvent, self.display_elements()),
+            Some(effect) => format!("{:?} base: {}. Effect: {} ({}% strength)", self.solvent, self.display_elements(discoveries), effect.to_title_case(), (self.strength * 100.0).round() as i32),
+            None => format!("{:?} base: {}", self.solvent, self.display_elements(discoveries)),
         }
     }
 
@@ -250,7 +251,7 @@ impl Ingredient {
     }
 
     pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
-        format!("{}\n{}", self.boil(discoveries), { self.apply(addition, discoveries); self.show_in_progress() })
+        format!("{}\n{}", self.boil(discoveries), { self.apply(addition, discoveries); self.show_in_progress(discoveries) })
     }
 
     pub fn infuse(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
@@ -259,7 +260,7 @@ impl Ingredient {
         ingredient.discard_insoluble(&self.solvent);
         ingredient.halve();
         self.add(&ingredient, discoveries);
-        self.show_in_progress()
+        self.show_in_progress(discoveries)
     }
 
     pub fn add(&mut self, ingredient: &Ingredient, discoveries: &mut KnowledgeState) {

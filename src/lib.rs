@@ -78,7 +78,7 @@ impl World {
     }
 
     fn list_satchel(&self) -> String {
-        self.satchel.iter().map(|i| i.inventory_view()).collect::<Vec<String>>().join("\n")
+        self.satchel.iter().map(|i| i.inventory_view(&self.discoveries)).collect::<Vec<String>>().join("\n")
     }
 
     fn forage(&mut self, params: &str) -> String {
@@ -167,7 +167,7 @@ impl World {
         }
         match &self.cauldron {
             Some(work) => {
-                let descr = work.show_in_progress();
+                let descr = work.show_in_progress(&self.discoveries);
                 self.cauldron = None;
                 format!("Dumped from cauldron: {}", descr)
             },
@@ -202,7 +202,7 @@ impl World {
 
     fn stir(&mut self) -> String {
         if self.has_cauldron() { match &mut self.cauldron {
-            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(&mut self.discoveries), ingredient.show_in_progress()),
+            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(&mut self.discoveries), ingredient.show_in_progress(&self.discoveries)),
             None => "The cauldron is empty.".to_string(),
         }} else {
             "You see nothing to stir.".to_string()
@@ -219,7 +219,7 @@ impl World {
                 let mut ingredient = ingredient.clone();
                 ingredient.container = Container::None;
                 ingredient.update_effect(&mut self.discoveries);
-                let descr = ingredient.show_in_progress();
+                let descr = ingredient.show_in_progress(&self.discoveries);
                 let name = ingredient.full_name();
                 self.cauldron = Some(ingredient);
                 format!("You pour {0} into the cauldron and bring it to a boil.\n{1}", name, descr)
