@@ -1,5 +1,7 @@
-use enum_map::{Enum, EnumMap};
+use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
+use strum::IntoEnumIterator;
+use strum_macros::EnumIter;
 
 use crate::{Effect, KnowledgeState};
 use crate::potions::REFERENCE_POTIONS;
@@ -33,21 +35,21 @@ const EVAPORABLE_ELEMENTS: [Element; 8] = [
 pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Water][Modifier::Provide] = 3;
-    Ingredient { name: "water", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
+    Ingredient { name: "water", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, requires_discovery: false, }
 });
 pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Spirit][Modifier::Provide] = 3;
-    Ingredient { name: "spirits", solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
+    Ingredient { name: "spirits", solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, requires_discovery: false, }
 });
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
-    Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, effect: None, strength: 0.0, }
+    Ingredient { name: "neutral oil", solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, effect: None, strength: 0.0, requires_discovery: false, }
 });
 pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Taint][Modifier::Provide] = 3;
     elements[Element::Taint][Modifier::Stabilize] = 3;
-    Ingredient { name: "rot", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
+    Ingredient { name: "rot", solvent: Solvent::Water, container: Container::None, elements, toxicity: 1.0, effect: None, strength: 0.0, requires_discovery: false, }
 });
 
 #[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
@@ -79,7 +81,7 @@ impl Element {
     }
 }
 
-#[derive(Clone, Copy, Debug, Enum, PartialEq)]
+#[derive(Clone, Copy, Debug, Enum, EnumIter, PartialEq)]
 pub enum Modifier {
     Strengthen, // Weaken if value is negative
     Stabilize, // Destabilize if value is negative
@@ -121,8 +123,12 @@ pub struct Ingredient {
     pub effect: Option<Effect>,
     pub strength: f32,
     pub toxicity: f32,
+    pub requires_discovery: bool,
 }
 
+static ALL_TRUE: Lazy<EnumMap<Element, EnumMap<Modifier, bool>>> = Lazy::new(|| enum_map! {
+    _ => enum_map! { _ => true },
+});
 impl Ingredient {
     pub fn full_name(&self) -> String {
         let name = match self.solvent {
@@ -151,26 +157,48 @@ impl Ingredient {
 
     fn display_elements(&self, discoveries: &KnowledgeState) -> String {
         let mut string = "".to_string();
-        let mut any = false;
+
+        let discovered = if self.requires_discovery {
+            discoveries.known_elements.get(self.name)
+        } else {
+            Some(&*ALL_TRUE)
+        };
+        let discovered = match discovered {
+            Some(map) => map,
+            None => return "Elemental affinities unknown".to_string(),
+        };
+
+        let mut any_known = false;
+        let mut any_unknown = false;
         for (element, status) in self.elements {
-            let provide = status[Modifier::Provide];
-            let stability = status[Modifier::Stabilize];
-            let strengthen = status[Modifier::Strengthen];
-            if provide == 0 && stability == 0 && strengthen == 0 {
+            if Modifier::iter().all(|modifier| status[modifier] == 0) {
                 continue;
             }
-            if any {
+            if !Modifier::iter().any(|modifier| discovered[element][modifier]) {
+                any_unknown = true;
+                continue;
+            }
+
+            if any_known {
                 string.push_str(", ");
             }
-            any = true;
-            match (strengthen == 0, stability == 0 || !discoveries.stability_known) {
-                (true, true) => string.push_str(format!("{} {:?}", provide, element).as_str()),
-                (true, false) => string.push_str(format!("{} {:?} ({:+} stability)", provide, element, stability).as_str()),
-                (false, true) => string.push_str(format!("{} ({:+}) {:?}", provide, strengthen, element).as_str()),
-                (false, false) => string.push_str(format!("{} ({:+}) {:?} ({:+} stability)", provide, strengthen, element, stability).as_str()),
+            any_known = true;
+
+            let provide = if discovered[element][Modifier::Provide] { status[Modifier::Provide] } else { 0 };
+            let strengthen = if discovered[element][Modifier::Strengthen] { status[Modifier::Strengthen] } else { 0 };
+            let stability = if discovered[element][Modifier::Stabilize] { status[Modifier::Stabilize] } else { 0 };
+
+            match (provide != 0, strengthen == 0, stability == 0 || !discoveries.stability_known) {
+                (_, true, true) => string.push_str(format!("{} {:?}", provide, element).as_str()),
+                (true, true, false) => string.push_str(format!("{} {:?} ({:+} stability)", provide, element, stability).as_str()),
+                (false, true, false) => string.push_str(format!("{:+} {:?} stability", stability, element).as_str()),
+                (_, false, true) => string.push_str(format!("{} ({:+}) {:?}", provide, strengthen, element).as_str()),
+                (_, false, false) => string.push_str(format!("{} ({:+}) {:?} ({:+} stability)", provide, strengthen, element, stability).as_str()),
             }
         }
-        if any {
+        if any_unknown {
+            format!("{}, Unknown", string)
+        } else if any_known {
             string
         } else {
             "Inert".to_string()

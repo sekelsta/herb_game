@@ -1,7 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use enum_map::EnumMap;
 
-use crate::Effect;
+use crate::{Effect, Element, Modifier};
 
 pub const ALCHEMY_BOOK: &str = "Alchemy for Dummies
 If you are just starting out, alchemy can seem quite daunting! But don't worry, it is.
@@ -17,6 +17,7 @@ pub struct KnowledgeState {
     pub herb_species: HashSet<&'static str>,
     pub herbs_gathered: u32,
     pub stability_known: bool,
+    pub known_elements: HashMap<&'static str, EnumMap<Element, EnumMap<Modifier, bool>>>,
 
     pub max_tier: i32,
     // To next level
@@ -33,6 +34,7 @@ impl KnowledgeState {
             herb_species: HashSet::new(),
             herbs_gathered: 0,
             stability_known: false,
+            known_elements: HashMap::new(),
 
             max_tier: 3,
             next_effects: 2,

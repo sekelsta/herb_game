@@ -26,6 +26,7 @@ impl Herb {
             effect: None,
             strength: 0.0,
             toxicity: self.toxicity,
+            requires_discovery: true,
         }
         // Deliberately do not check for potion effects - you need to do something with the herb first
     }
