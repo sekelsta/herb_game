@@ -2,7 +2,8 @@ use std::fmt;
 use enum_map::{Enum, EnumMap};
 use once_cell::sync::Lazy;
 
-use crate::KnowledgeState;
+use crate::{Effect, KnowledgeState};
+use crate::potions::REFERENCE_POTIONS;
 
 const TAINTABLE_ELEMENTS: [Element; 11] = [
     Element::Mana,
@@ -32,12 +33,12 @@ const EVAPORABLE_ELEMENTS: [Element; 8] = [
 // Names are hardcoded in name() so make sure to adjust both places if changing
 pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-    elements[Element::Water][Modifier::Provide] = 4;
+    elements[Element::Water][Modifier::Provide] = 3;
     Ingredient { name: "water", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-    elements[Element::Spirit][Modifier::Provide] = 4;
+    elements[Element::Spirit][Modifier::Provide] = 3;
     Ingredient { name: "spirits", solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
@@ -45,151 +46,10 @@ pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
 });
 pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
-    elements[Element::Taint][Modifier::Provide] = 4;
-    elements[Element::Taint][Modifier::Stabilize] = 4;
+    elements[Element::Taint][Modifier::Provide] = 3;
+    elements[Element::Taint][Modifier::Stabilize] = 3;
     Ingredient { name: "rot", solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
-
-use Element::*;
-use Effect::*;
-pub static REFERENCE_POTIONS: [Lazy<Ingredient>; 29] = [
-    Lazy::new(|| Ingredient::new_potion("cough remedy", CoughRemedy, 1.0, |elements| {
-        elements[Ice] = 2;
-        elements[Thunder] = 2;
-        elements[Air] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("fever reducer", FeverReducer, 1.0, |elements| {
-        elements[Ice] = 3;
-        elements[Water] = 2;
-        elements[Shadow] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("salve of healing", WoundHealing, 1.0, |elements| {
-        elements[Earth] = 4;
-        elements[Air] = 4;
-    })),
-    Lazy::new(|| Ingredient::new_potion("insect repellent", InsectRepellent, 1.0, |elements| {
-        elements[Light] = 4;
-        elements[Air] = 3;
-        elements[Fire] = 2;
-    })),
-    Lazy::new(|| Ingredient::new_potion("snake repellent", SnakeRepellent, 1.0, |elements| {
-        elements[Ice] = 3;
-        elements[Fire] = 2;
-    })),
-    Lazy::new(|| Ingredient::new_potion("protection from charms", CharmProtection, 1.0, |elements| {
-        elements[Fire] = 4;
-        elements[Earth] = 4;
-    })),
-    Lazy::new(|| Ingredient::new_potion("love potion", Love, 1.0, |elements| {
-        elements[Fire] = 3;
-        elements[Air] = 3;
-        elements[Ice] = 1;
-        elements[Thunder] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of cleanliness", Cleanliness, 1.0, |elements| {
-        elements[Void] = 6;
-        elements[Air] = 3;
-        elements[Light] = 2;
-        elements[Ice] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of fear", Fear, 1.0, |elements| {
-        elements[Ice] = 3;
-        elements[Shadow] = 3;
-        elements[Water] = 2;
-        elements[Thunder] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of rage", Rage, 1.0, |elements| {
-        elements[Fire] = 3;
-        elements[Shadow] = 3;
-        elements[Taint] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of courage", Courage, 1.0, |elements| {
-        elements[Spirit] = 3;
-        elements[Fire] = 2;
-    })),
-    Lazy::new(|| Ingredient::new_potion("relaxant", Relaxation, 1.0, |elements| {
-        elements[Water] = 3;
-        elements[Fire] = 2;
-        elements[Earth] = 1;
-        elements[Light] = 1;
-        elements[Spirit] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("sleep draught", Sleep, 1.0, |elements| {
-        elements[Water] = 3;
-        elements[Taint] = 2;
-    })),
-    Lazy::new(|| Ingredient::new_potion("paralyzing poison", Paralysis, 1.0, |elements| {
-        elements[Taint] = 3;
-        elements[Void] = 3;
-    })),
-    Lazy::new(|| Ingredient::new_potion("intelligence potion", Intelligence, 1.0, |elements| {
-        elements[Water] = 5;
-        elements[Spirit] = 4;
-        elements[Fire] = 3;
-    })),
-    Lazy::new(|| Ingredient::new_potion("strength potion", Strength, 1.0, |elements| {
-        elements[Earth] = 6;
-        elements[Thunder] = 2;
-        elements[Ice] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of patience", Patience, 1.0, |elements| {
-        elements[Earth] = 5;
-        elements[Water] = 3;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of plant growth", PlantGrowth, 1.0, |elements| {
-        elements[Water] = 4;
-        elements[Light] = 4;
-        elements[Earth] = 2;
-        elements[Air] = 2;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of resillience", Resillience, 1.0, |elements| {
-        elements[Earth] = 4;
-        elements[Shadow] = 2;
-    })),
-    Lazy::new(|| Ingredient::new_potion("speed booster", Speed, 1.0, |elements| {
-        elements[Air] = 6;
-        elements[Thunder] = 6;
-        elements[Light] = 3;
-    })),
-    Lazy::new(|| Ingredient::new_potion("charisma", Charisma, 1.0, |elements| {
-        elements[Spirit] = 6;
-        elements[Void] = 3;
-    })),
-    Lazy::new(|| Ingredient::new_potion("potion of seeing", Perception, 1.0, |elements| {
-        elements[Light] = 5;
-        elements[Shadow] = 4;
-    })),
-    Lazy::new(|| Ingredient::new_potion("perfume of loveliness", Loveliness, 1.0, |elements| {
-        elements[Air] = 7;
-        elements[Fire] = 3;
-    })),
-    Lazy::new(|| Ingredient::new_potion("vial of shock", Shock, 1.0, |elements| {
-        elements[Light] = 5;
-        elements[Fire] = 4;
-        elements[Thunder] = 3;
-    })),
-    Lazy::new(|| Ingredient::new_potion("vial of fire", Flame, 1.0, |elements| {
-        elements[Fire] = 8;
-        elements[Earth] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("vial of lightning", Lightning, 1.0, |elements| {
-        elements[Thunder] = 6;
-        elements[Light] = 6;
-    })),
-    Lazy::new(|| Ingredient::new_potion("vial of ice", Freeze, 1.0, |elements| {
-        elements[Ice] = 8;
-        elements[Earth] = 1;
-    })),
-    Lazy::new(|| Ingredient::new_potion("vial of poison", Poison, 1.0, |elements| {
-        elements[Taint] = 6;
-        elements[Air] = 2;
-    })),
-    Lazy::new(|| Ingredient::new_potion("vial of darkness", Darkness, 1.0, |elements| {
-        elements[Shadow] = 6;
-        elements[Taint] = 1;
-        elements[Thunder] = 1;
-    })),
-];
 
 #[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
 pub enum Element {
@@ -272,90 +132,6 @@ pub enum IngredientKind {
 impl fmt::Display for IngredientKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
-    }
-}
-
-#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
-pub enum Effect {
-    CoughRemedy,
-    FeverReducer,
-    InsectRepellent,
-    SnakeRepellent,
-    CharmProtection,
-    PlantGrowth,
-    WoundHealing,
-    Love,
-    Fear,
-    Rage,
-    Courage,
-    Relaxation,
-    Sleep,
-    Paralysis,
-    Intelligence,
-    Strength,
-    Patience,
-    Resillience,
-    Speed,
-    Charisma,
-    Perception,
-    Loveliness,
-    Cleanliness,
-    Flame, 
-    Lightning,
-    Freeze,
-    Shock,
-    Poison,
-    Darkness,
-}
-
-impl Effect {
-    fn to_title_case(&self) -> String {
-        use Effect::*;
-        match self {
-            CoughRemedy => "Cough Remedy".to_string(),
-            FeverReducer => "Fever Reducer".to_string(),
-            InsectRepellent => "Insect Repellent".to_string(),
-            SnakeRepellent => "Snake Repellent".to_string(),
-            CharmProtection => "Charm Protection".to_string(),
-            PlantGrowth => "Plant Growth".to_string(),
-            WoundHealing => "Wound Healing".to_string(),
-            e => e.to_string(),
-        }
-    }
-
-    pub fn sale_value(&self) -> i32 {
-        use Effect::*;
-        match self {
-            CoughRemedy => 3,
-            FeverReducer => 4,
-            InsectRepellent => 5,
-            SnakeRepellent => 6,
-            CharmProtection => 7,
-            PlantGrowth => 4,
-            WoundHealing => 8,
-            Love => 8,
-            Fear => 9,
-            Rage => 12,
-            Courage => 12,
-            Relaxation => 12,
-            Sleep => 12,
-            Paralysis => 14,
-            Intelligence => 16,
-            Strength => 14,
-            Patience => 12,
-            Resillience => 15,
-            Speed => 14,
-            Charisma => 18,
-            Perception => 15,
-            Loveliness => 22,
-            Cleanliness => 18,
-            Flame => 24, 
-            Lightning => 25,
-            Freeze => 26,
-            Shock => 23,
-            Poison => 13,
-            Darkness => 28,
-        }
     }
 }
 
@@ -577,7 +353,7 @@ impl Ingredient {
     }
 
     pub fn update_effect(&mut self, discoveries: &mut KnowledgeState) {
-        for potion in &REFERENCE_POTIONS {
+        for potion in &*REFERENCE_POTIONS {
             let effectiveness = self.calc_strength(&potion);
             if effectiveness > self.strength {
                 self.strength = effectiveness;

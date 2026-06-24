@@ -6,8 +6,10 @@ use wasm_bindgen::prelude::*;
 mod alchemy;
 mod herbs;
 mod knowledge;
+mod potions;
 mod region;
 
+use crate::potions::Effect;
 use crate::alchemy::*;
 use crate::region::*;
 use crate::knowledge::*;

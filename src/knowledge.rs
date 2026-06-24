@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use enum_map::EnumMap;
 
-use crate::alchemy::Effect;
+use crate::Effect;
 
 pub const ALCHEMY_BOOK: &str = "Alchemy for Dummies
 If you are just starting out, alchemy can seem quite daunting! But don't worry, it is.

@@ -51,7 +51,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
             (Air, Provide, 3),
             (Fire, Provide, 1),
             (Earth, Provide, 2),
-            (Mana, Strengthen, 2),
+            (Spirit, Strengthen, 2),
         ]),
         biomes: vec!(Field, Garden, Village),
     },
@@ -84,9 +84,10 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         toxicity: 0.0,
         elements: map_elements(&[
             (Fire, Provide, 1),
+            (Water, Provide, 1),
+            (Earth, Provide, 1),
             (Earth, Stabilize, 2),
             (Light, Strengthen, 2),
-            // TODO
         ]),
         biomes: vec!(Field, WildflowerMeadow),
     },
