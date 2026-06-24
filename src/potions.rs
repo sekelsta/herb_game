@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use enum_map::{Enum, EnumMap};
 
-use crate::{Element, Ingredient, Modifier};
+use crate::{Element, Ingredient, Modifier, Solvent};
 use Element::*;
 use Effect::*;
 
@@ -56,7 +56,7 @@ impl Effect {
 
     pub fn sale_value(&self) -> i32 {
         match self {
-            HealthBoost => 3,
+            HealthBoost => 4,
             CoughRemedy => 5,
             FeverReducer => 6,
             InsectRepellent => 7,
@@ -88,11 +88,33 @@ impl Effect {
             Darkness => 28,
         }
     }
+
+    pub fn potion_name(&self, solvent: &Solvent) -> String {
+        match self {
+            HealthBoost => "health tonic".to_string(),
+            Relaxation => "relaxant".to_string(),
+            CharmProtection => "protection from charms".to_string(),
+            Loveliness => "perfume of loveliness".to_string(),
+            Paralysis => "paralyzing poison".to_string(),
+            Perception => "potion of seeing".to_string(),
+            WoundHealing => "salve of healing".to_string(),
+            Freeze => "potion of ice".to_string(),
+            CoughRemedy | FeverReducer | InsectRepellent | SnakeRepellent | Charisma | Shock | Lightning | Poison | Darkness | Flame =>
+                self.to_title_case().to_ascii_lowercase(),
+            Patience | Rage | Fear | Courage | Resillience | Cleanliness | PlantGrowth =>
+                format!("potion of {}", self.to_title_case().to_ascii_lowercase()),
+            Love | Strength | Intelligence =>
+                format!("{} potion", self.to_title_case().to_ascii_lowercase()),
+            Sleep =>
+                format!("{} draught", self.to_title_case().to_ascii_lowercase()),
+            Speed =>
+                format!("{} booster", self.to_title_case().to_ascii_lowercase()),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
 pub struct Potion {
-    pub name: &'static str,
     pub effect: Effect,
     pub elements: EnumMap<Element, i32>,
     //pub min_toxicity: f32,
@@ -100,11 +122,10 @@ pub struct Potion {
 }
 
 impl Potion {
-    pub fn new(name: &'static str, effect: Effect, f: impl Fn(&mut EnumMap<Element, i32>)) -> Self {
+    pub fn new(effect: Effect, f: impl Fn(&mut EnumMap<Element, i32>)) -> Self {
         let mut elements: EnumMap<Element, i32> = EnumMap::default();
         f(&mut elements);
         Self {
-            name,
             effect,
             elements,
             //min_toxicity: 0.0,
@@ -143,146 +164,146 @@ impl Potion {
 
 pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
     // ------ Craftable with only basic elements ------ //
-    Potion::new("health tonic", HealthBoost, |elements| {
+    Potion::new(HealthBoost, |elements| {
         elements[Earth] = 4;
         elements[Air] = 4;
     }),
-    Potion::new("love potion", Love, |elements| {
+    Potion::new(Love, |elements| {
         elements[Fire] = 3;
         elements[Air] = 3;
         elements[Ice] = 1;
         elements[Thunder] = 1;
     }),
-    Potion::new("relaxant", Relaxation, |elements| {
+    Potion::new(Relaxation, |elements| {
         elements[Water] = 3;
         elements[Fire] = 2;
         elements[Earth] = 1;
         elements[Light] = 1;
         elements[Spirit] = 1;
     }),
-    Potion::new("potion of patience", Patience, |elements| {
+    Potion::new(Patience, |elements| {
         elements[Earth] = 5;
         elements[Water] = 3;
     }),
-    Potion::new("perfume of loveliness", Loveliness, |elements| {
+    Potion::new(Loveliness, |elements| {
         elements[Air] = 7;
         elements[Fire] = 3;
     }),
-    Potion::new("vial of fire", Flame, |elements| {
+    Potion::new(Flame, |elements| {
         elements[Fire] = 8;
         elements[Earth] = 1;
     }),
     // ------ Requires advanced elements ------ //
-    Potion::new("protection from charms", CharmProtection, |elements| {
+    Potion::new(CharmProtection, |elements| {
         elements[Fire] = 4;
         elements[Earth] = 4;
         elements[Light] = 2;
         elements[Shadow] = 2;
     }),
-    Potion::new("salve of healing", WoundHealing, |elements| {
+    Potion::new(WoundHealing, |elements| {
         elements[Earth] = 4;
         elements[Air] = 4;
         elements[Light] = 4;
     }),
-    Potion::new("cough remedy", CoughRemedy, |elements| {
+    Potion::new(CoughRemedy, |elements| {
         elements[Ice] = 2;
         elements[Thunder] = 2;
         elements[Air] = 1;
     }),
-    Potion::new("fever reducer", FeverReducer, |elements| {
+    Potion::new(FeverReducer, |elements| {
         elements[Ice] = 3;
         elements[Water] = 2;
         elements[Shadow] = 1;
     }),
-    Potion::new("insect repellent", InsectRepellent, |elements| {
+    Potion::new(InsectRepellent, |elements| {
         elements[Light] = 4;
         elements[Air] = 3;
         elements[Fire] = 2;
     }),
-    Potion::new("snake repellent", SnakeRepellent, |elements| {
+    Potion::new(SnakeRepellent, |elements| {
         elements[Ice] = 3;
         elements[Fire] = 2;
     }),
-    Potion::new("potion of cleanliness", Cleanliness, |elements| {
+    Potion::new(Cleanliness, |elements| {
         elements[Void] = 6;
         elements[Air] = 3;
         elements[Light] = 2;
         elements[Ice] = 1;
     }),
-    Potion::new("potion of fear", Fear, |elements| {
+    Potion::new(Fear, |elements| {
         elements[Ice] = 3;
         elements[Shadow] = 3;
         elements[Water] = 2;
         elements[Thunder] = 1;
     }),
-    Potion::new("potion of rage", Rage, |elements| {
+    Potion::new(Rage, |elements| {
         elements[Fire] = 3;
         elements[Shadow] = 3;
         elements[Taint] = 1;
     }),
-    Potion::new("potion of courage", Courage, |elements| {
+    Potion::new(Courage, |elements| {
         elements[Spirit] = 3;
         elements[Fire] = 2;
     }),
-    Potion::new("sleep draught", Sleep, |elements| {
+    Potion::new(Sleep, |elements| {
         elements[Water] = 3;
         elements[Taint] = 2;
     }),
-    Potion::new("paralyzing poison", Paralysis, |elements| {
+    Potion::new(Paralysis, |elements| {
         elements[Taint] = 3;
         elements[Void] = 3;
     }),
-    Potion::new("intelligence potion", Intelligence, |elements| {
+    Potion::new(Intelligence, |elements| {
         elements[Water] = 5;
         elements[Spirit] = 4;
         elements[Fire] = 3;
     }),
-    Potion::new("strength potion", Strength, |elements| {
+    Potion::new(Strength, |elements| {
         elements[Earth] = 6;
         elements[Thunder] = 2;
         elements[Ice] = 1;
     }),
-    Potion::new("potion of plant growth", PlantGrowth, |elements| {
+    Potion::new(PlantGrowth, |elements| {
         elements[Water] = 4;
         elements[Light] = 4;
         elements[Earth] = 2;
         elements[Air] = 2;
     }),
-    Potion::new("potion of resillience", Resillience, |elements| {
+    Potion::new(Resillience, |elements| {
         elements[Earth] = 4;
         elements[Shadow] = 2;
     }),
-    Potion::new("speed booster", Speed, |elements| {
+    Potion::new(Speed, |elements| {
         elements[Air] = 6;
         elements[Thunder] = 6;
         elements[Light] = 3;
     }),
-    Potion::new("charisma", Charisma, |elements| {
+    Potion::new(Charisma, |elements| {
         elements[Spirit] = 6;
         elements[Void] = 3;
     }),
-    Potion::new("potion of seeing", Perception, |elements| {
+    Potion::new(Perception, |elements| {
         elements[Light] = 5;
         elements[Shadow] = 4;
     }),
-    Potion::new("vial of shock", Shock, |elements| {
+    Potion::new(Shock, |elements| {
         elements[Light] = 5;
         elements[Fire] = 4;
         elements[Thunder] = 3;
     }),
-    Potion::new("vial of lightning", Lightning, |elements| {
+    Potion::new(Lightning, |elements| {
         elements[Thunder] = 6;
         elements[Light] = 6;
     }),
-    Potion::new("vial of ice", Freeze, |elements| {
+    Potion::new(Freeze, |elements| {
         elements[Ice] = 8;
         elements[Earth] = 1;
     }),
-    Potion::new("vial of poison", Poison, |elements| {
+    Potion::new(Poison, |elements| {
         elements[Taint] = 6;
         elements[Air] = 2;
     }),
-    Potion::new("vial of darkness", Darkness, |elements| {
+    Potion::new(Darkness, |elements| {
         elements[Shadow] = 6;
         elements[Taint] = 1;
         elements[Thunder] = 1;

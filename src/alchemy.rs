@@ -131,13 +131,16 @@ static ALL_TRUE: Lazy<EnumMap<Element, EnumMap<Modifier, bool>>> = Lazy::new(|| 
 });
 impl Ingredient {
     pub fn full_name(&self) -> String {
-        let name = match self.solvent {
-            Solvent::Air => format!("dry {}", self.name),
-            Solvent::Ether if self.name != "spirits" => format!("{} tincture", self.name),
-            Solvent::Water if self.name != "water" && self.name != "rot" => format!("aqueous {}", self.name),
-            Solvent::Oil if self.name != "neutral oil" => format!("{} oil", self.name),
-            Solvent::Vivo => format!("fresh {}", self.name),
-            _ => self.name.to_string(),
+        let name = match self.effect {
+            Some(effect) => effect.potion_name(&self.solvent),
+            None => match self.solvent {
+                Solvent::Air => format!("dry {}", self.name),
+                Solvent::Ether if self.name != "spirits" => format!("{} tincture", self.name),
+                Solvent::Water if self.name != "water" && self.name != "rot" => format!("aqueous {}", self.name),
+                Solvent::Oil if self.name != "neutral oil" => format!("{} oil", self.name),
+                Solvent::Vivo => format!("fresh {}", self.name),
+                _ => self.name.to_string(),
+            }
         };
         match self.container {
             Container::Bottle => format!("bottle of {}", name),
@@ -149,7 +152,7 @@ impl Ingredient {
         let value = self.sale_value();
         let elements = self.display_elements(discoveries);
         match (self.effect, value != 0) {
-            (Some(effect), _) => format!("{} - {}. Effect: {} at {}% strength. Sell: {}", self.full_name(), elements, effect, (self.strength * 100.0).round() as i32, value),
+            (Some(effect), _) => format!("{} - {}. Effect: {} ({}% strength). Sell: {}", self.full_name(), elements, effect.to_title_case(), (self.strength * 100.0).round() as i32, value),
             (None, true) => format!("{} - {}. Sell: {}", self.full_name(), elements, value),
             (None, false) => format!("{} - {}", self.full_name(), elements),
         }
@@ -294,6 +297,7 @@ impl Ingredient {
     pub fn add(&mut self, ingredient: &Ingredient, discoveries: &mut KnowledgeState) {
         self.toxicity += ingredient.toxicity;
         for (element, modifiers) in ingredient.elements {
+            // TODO: Discover strengthening, or only provide?
             for (modifier, amount) in modifiers {
                 self.elements[element][modifier] += amount;
             }
@@ -330,10 +334,15 @@ impl Ingredient {
         for (element, modifiers) in ingredient.elements {
             for (modifier, amount) in modifiers {
                 let power = self.elements[element][Modifier::Provide];
+                let before = self.elements[element][modifier];
                 match modifier {
                     Modifier::Strengthen => self.elements[element][Modifier::Provide] = (power + amount.min(power)).max(0),
                     Modifier::Stabilize => self.elements[element][Modifier::Stabilize]+= amount,
                     Modifier::Provide => self.elements[element][Modifier::Provide] += amount,
+                }
+                if ingredient.requires_discovery && before != self.elements[element][modifier] && (discoveries.stability_known || modifier != Modifier::Stabilize) {
+                    let map = discoveries.known_elements.entry(ingredient.name).or_insert(EnumMap::default());
+                    map[element][modifier] = true;
                 }
             }
         }
@@ -341,12 +350,14 @@ impl Ingredient {
     }
 
     pub fn update_effect(&mut self, discoveries: &mut KnowledgeState) {
+        self.name = "alchemical work";
+        self.effect = None;
+        self.strength = 0.0;
         for potion in &*REFERENCE_POTIONS {
             let effectiveness = potion.calc_strength(self);
             if effectiveness > self.strength {
                 self.strength = effectiveness;
                 self.effect = Some(potion.effect);
-                self.name = potion.name;
                 discoveries.effects[potion.effect] = true;
             }
         }
