@@ -1,7 +1,7 @@
 use enum_map::EnumMap;
 use once_cell::sync::Lazy;
 
-use crate::{Container, Element, Ingredient, Modifier, RegionEnum, Solvent};
+use crate::{Container, Element, Ingredient, IngredientKind, Modifier, RegionEnum, Solvent};
 use crate::Element::*;
 use crate::Modifier::*;
 use crate::RegionEnum::*;
@@ -19,14 +19,11 @@ pub struct Herb {
 impl Herb {
     pub fn to_ingredient(&self) -> Ingredient {
         Ingredient {
-            name: self.name,
+            kind: IngredientKind::Herb { name: self.name },
             solvent: Solvent::Vivo,
             container: Container::None,
             elements: self.elements.clone(),
-            effect: None,
-            strength: 0.0,
             toxicity: self.toxicity,
-            requires_discovery: true,
         }
         // Deliberately do not check for potion effects - you need to do something with the herb first
     }

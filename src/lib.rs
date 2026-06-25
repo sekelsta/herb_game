@@ -38,7 +38,7 @@ impl World {
             empty_bottles: 4,
             bottles_sold: 0,
             money: 2,
-            unlimited_ingredients: vec!(&*WATER, &*ROT),
+            unlimited_ingredients: vec!(&*WATER),
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
             cauldron: None,
@@ -74,7 +74,12 @@ impl World {
     }
 
     fn list_inventory(&self) -> String {
-        format!("{0}\nEmpty glass bottles: {1}\nSilver pieces: {2}", self.list_satchel(), self.empty_bottles, self.money)
+        let satchel_contents = self.list_satchel();
+        if satchel_contents == "" {
+            format!("Empty glass bottles: {}\nSilver pieces: {}", self.empty_bottles, self.money)
+        } else {
+            format!("{0}\nEmpty glass bottles: {1}\nSilver pieces: {2}", satchel_contents, self.empty_bottles, self.money)
+        }
     }
 
     fn list_satchel(&self) -> String {
@@ -218,9 +223,9 @@ impl World {
             None => {
                 let mut ingredient = ingredient.clone();
                 ingredient.container = Container::None;
+                let name = ingredient.full_name();
                 ingredient.update_effect(&mut self.discoveries);
                 let descr = ingredient.show_in_progress(&self.discoveries);
-                let name = ingredient.full_name();
                 self.cauldron = Some(ingredient);
                 format!("You pour {0} into the cauldron and bring it to a boil.\n{1}", name, descr)
             }
@@ -265,26 +270,37 @@ impl World {
     }
 
     fn infuse(&mut self, base: Ingredient, addition: Ingredient) -> String {
-        match base.solvent {
-            Solvent::Vivo | Solvent::Air => {
-                let name = base.full_name();
-                self.satchel.push(base);
-                self.satchel.push(addition);
-                return format!("The base for the infusion must be a liquid, not {}.", name)
-            },
-            Solvent::Water | Solvent::Ether | Solvent::Oil => (),
-        }
-        if let Container::Bottle = addition.container {
-            self.empty_bottles += 1;
-        }
+        let kind = match base.infusion_kind(&addition) {
+            Ok(kind) => kind,
+            Err(message) => {
+                match addition.infusion_kind(&base) {
+                    Ok(_) => return self.infuse(addition, base),
+                    Err(_) => {
+                        self.satchel.push(base);
+                        self.satchel.push(addition);
+                        return message;
+                    }
+                }
+            }
+        };
+        
         let mut base = base;
         match base.container {
-            Container::Bottle => (),
+            Container::Bottle => match addition.container {
+                Container::Bottle => self.empty_bottles += 1,
+                Container::None => (),
+            },
+            Container::None if addition.container == Container::Bottle => base.container = Container::Bottle,
             Container::None => match self.bottle(&mut base) {
                 Ok(_result) => (),
-                Err(result) => return result,
+                Err(result) => {
+                    self.satchel.push(base);
+                    self.satchel.push(addition);
+                    return result;
+                },
             },
         }
+        base.kind = kind;
         let result = base.infuse(&addition, &mut self.discoveries);
         self.infusion_shelf.push(base);
         format!("Bottle of [{}] added to shelf to infuse over time.", result)
@@ -403,7 +419,10 @@ impl World {
 
     fn look(&mut self) -> String {
         let region = &self.regions[self.current_region];
-        format!("{}\n{}\n{}", region.name, region.description, region.status(&self.discoveries))
+        match region.status(&self.discoveries) {
+            None => format!("{}\n{}", region.name, region.description),
+            Some(status) => format!("{}\n{}\n{}", region.name, region.description, status),
+        }
     }
 }
 

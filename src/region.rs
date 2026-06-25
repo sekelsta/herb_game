@@ -234,10 +234,10 @@ impl Region {
         self.current_herbs.shuffle(&mut rand::rng());
     }
 
-    pub fn status(&self, discoveries: &KnowledgeState) -> String {
+    pub fn status(&self, discoveries: &KnowledgeState) -> Option<String> {
         if self.current_herbs.iter().any(|h| h.tier <= discoveries.herb_tier) {
-            return "You spot some herbs you recognize.".to_string();
+            return Some("You spot some herbs you recognize.".to_string());
         }
-        "".to_string()
+        None
     }
 }
