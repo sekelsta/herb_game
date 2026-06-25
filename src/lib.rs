@@ -236,10 +236,22 @@ impl World {
         }
     }
 
-    fn decoct(&mut self, addition: Ingredient) -> String {
+    fn decoct_named(&mut self, params: &str) -> String {
         if !self.has_cauldron() {
             return "You don't have the equipment to brew potions out here.".to_string();
         }
+
+        if params == "" {
+            self.fill_cauldron(&WATER)
+        } else {
+            match self.take_ingredient(&params, |_| true) {
+                Ok(ingr) => self.decoct(ingr),
+                Err(e) => e,
+            }
+        }
+    }
+
+    fn decoct(&mut self, addition: Ingredient) -> String {
         if addition.container == Container::Bottle {
             self.empty_bottles += 1;
         }
@@ -489,16 +501,7 @@ pub fn step(command: &str) -> String {
             "wait"|"advance"|"sleep" => world.advance_time(),
             "inv"|"inventory"|"satchel"|"list" => world.list_inventory(),
             "gather"|"forage"|"collect" => world.forage(&params),
-            "brew"|"decoct"|"cauldron" => {
-                if params == "" {
-                    world.fill_cauldron(&WATER)
-                } else {
-                    match world.take_ingredient(&params, |_| true) {
-                        Ok(ingr) => world.decoct(ingr),
-                        Err(e) => e,
-                    }
-                }
-            }
+            "brew"|"decoct"|"cauldron" => world.decoct_named(&params),
             "soak"|"infuse" => world.infuse_named(&params),
             "bottle" => world.bottle_named(&params),
             "dump"|"spill"|"empty" => world.dump(&params),
