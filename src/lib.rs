@@ -388,6 +388,11 @@ impl World {
     }
 
     fn advance_time(&mut self) -> String {
+        let regional_message = match self.regions[self.current_region].sleep_result {
+            Ok(message) => message,
+            Err(message) => return message.to_string(),
+        };
+
         // Ingredients dry out or rot
         let herb_changes = self.satchel.iter_mut().filter_map(|i| i.advance_time()).collect::<Vec<String>>().join("\n");
         // Infusions complete
@@ -424,7 +429,7 @@ impl World {
         }
 
         if response.is_empty() {
-            return "You wake refreshed.".to_string();
+            return regional_message.to_string();
         }
         response.join("\n")
     }

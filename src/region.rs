@@ -90,6 +90,7 @@ pub struct Region {
     pub routes: EnumMap<Direction, RegionEnum>,
     pub current_herbs: Vec<&'static Herb>,
     x: i32, y: i32,
+    pub sleep_result: Result<&'static str, &'static str>,
 }
 
 impl Region {
@@ -109,6 +110,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 19, y: 13,
+                sleep_result: Ok("You wake refreshed."),
             },
             Garden => Region {
                 name: "Your Garden",
@@ -121,6 +123,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 13, y: 13,
+                sleep_result: Err("The garden isn't appealing for camping. You think about heading inside."),
             },
             FriendlyForest => Region {
                 name: "Friendly Forest",
@@ -133,6 +136,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 8, y: 16,
+                sleep_result: Ok("The rustling leaves soothe you to sleep. You wake to a gently green morning."),
             },
             Village => Region {
                 name: "Village Square",
@@ -146,6 +150,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 15, y: 9,
+                sleep_result: Ok("You stay overnight with a friend and catch up on gossip. In the morning you share a hearty breakfast, then head out."),
             },
             Field => Region {
                 name: "Weedy Field",
@@ -157,6 +162,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 17, y: 3,
+                sleep_result: Err("You decide not to sleep on top of the crops."),
             },
             PineForest => Region {
                 name: "Pine Forest",
@@ -168,6 +174,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 4, y: 3,
+                sleep_result: Err("You decide not to sleep under the conifers. You pine for your own bed."),
             },
             WildflowerMeadow => Region {
                 name: "Wildflower Meadow",
@@ -179,6 +186,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 30, y: 3,
+                sleep_result: Ok("You drift off to sleep as the dancing fireflies drift into your dreams. At dawn you spot a bunny watching you, but it runs off."),
             },
             MeadowRiver => Region {
                 name: "Meadow Riverbank",
@@ -192,6 +200,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 31, y: 11,
+                sleep_result: Err("It's too soggy to camp here."),
             },
             ForestRiver => Region {
                 name: "Forest Riverbank",
@@ -205,6 +214,7 @@ impl Region {
                 ),
                 current_herbs: Vec::new(),
                 x: 19, y: 15,
+                sleep_result: Err("It's too soggy to camp here."),
             },
         )
     }
