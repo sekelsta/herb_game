@@ -105,7 +105,7 @@ impl World {
         if found.tier > self.discoveries.herb_tier {
             // Return it to the back.
             available.push(found);
-            return "You don't recognize this plant.".to_string();
+            return "You don't recognize this plant. You leave it be and keep looking.".to_string();
         }
         let result = format!("You collected {}.", found.name);
         self.discoveries.herb_species.insert(found.name);
@@ -326,7 +326,7 @@ impl World {
         if self.current_region != RegionEnum::Village {
             return "There's no one here to buy from.".to_string()
         }
-        let bottle_price = 1;
+        let bottle_price = 2;
         let spirits_price = 8;
         let oil_price = 24;
         match params {

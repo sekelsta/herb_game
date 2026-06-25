@@ -120,7 +120,7 @@ pub enum Container {
 impl Container {
     pub fn sale_value(&self) -> i32 {
         match self {
-            Container::Bottle => 1,
+            Container::Bottle => 2,
             Container::None => 0,
         }
     }
@@ -292,10 +292,11 @@ impl Ingredient {
 
     pub fn sale_value(&self) -> i32 {
         let base_value = match self.kind {
-            IngredientKind::Potion { effect, strength } => (strength * strength * effect.sale_value() as f32).round() as i32,
+            IngredientKind::Potion { effect, strength } => (strength * strength * effect.sale_value() as f32).ceil() as i32,
             _ => 0
         };
-        base_value + self.container.sale_value()
+        // Don't include container value, because the bottles will be returned
+        base_value// + self.container.sale_value()
     }
 
     pub fn boil(&mut self, discoveries: &mut KnowledgeState) -> String {
