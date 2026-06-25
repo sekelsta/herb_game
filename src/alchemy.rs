@@ -150,7 +150,7 @@ static ALL_TRUE: Lazy<EnumMap<Element, EnumMap<Modifier, bool>>> = Lazy::new(|| 
     _ => enum_map! { _ => true },
 });
 impl Ingredient {
-    pub fn name(&self) -> String {
+    pub fn base_name(&self) -> String {
         match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
             IngredientKind::Potion { effect, .. } => effect.potion_name(&self.solvent),
@@ -161,8 +161,8 @@ impl Ingredient {
         }
     }
 
-    pub fn full_name(&self) -> String {
-        let name = match &self.kind {
+    pub fn brew_name(&self) -> String {
+        match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
             IngredientKind::Potion { effect, strength} => {
                 format!("{} ({}% strength)", effect.potion_name(&self.solvent), (strength * 100.0).round() as i32)
@@ -176,7 +176,7 @@ impl Ingredient {
             },
             IngredientKind::Infusion { names } => match self.solvent {
                 Solvent::Air => format!("dried infusion of {}", names.join(", ")),
-                Solvent::Water => format!("infustion of {}", names.join(", ")),
+                Solvent::Water => format!("infusion of {}", names.join(", ")),
                 Solvent::Ether => format!("{} tincture", names.join(", ")),
                 Solvent::Oil => format!("oil of {}", names.join(", ")),
                 Solvent::Vivo => format!("mashed {}", names.join(", ")),
@@ -189,12 +189,14 @@ impl Ingredient {
                 Solvent::Vivo => format!("cooked {}", names.join(", ")),
             },
             IngredientKind::Mixture => "herbal concoction".to_string(),
-            IngredientKind::Rot => self.name(),
-        };
+            IngredientKind::Rot => self.base_name(),
+        }
+    }
 
+    pub fn full_name(&self) -> String {
         match self.container {
-            Container::Bottle => format!("bottle of {}", name),
-            Container::None => name,
+            Container::Bottle => format!("bottle of {}", self.brew_name()),
+            Container::None => self.brew_name(),
         }
     }
 
@@ -265,13 +267,14 @@ impl Ingredient {
     }
 
     pub fn matches_name(&self, needle: &str) -> bool {
-        needle.starts_with(self.full_name().as_str()) || needle.starts_with(self.name().as_str())
+        needle.starts_with(self.full_name().as_str()) || needle.starts_with(self.brew_name().as_str()) || needle.starts_with(self.base_name().as_str())
     }
 
     pub fn search_remainder<'a>(&self, needle: &'a str) -> Option<&'a str> {
         let full_name = self.full_name();
-        let name = self.name();
-        if needle == full_name || needle == name {
+        let name = self.brew_name();
+        let base_name = self.base_name();
+        if needle == full_name || needle == name || needle == base_name {
             return None;
         }
         if needle.starts_with(full_name.as_str()) {
@@ -280,6 +283,9 @@ impl Ingredient {
         }
         if needle.starts_with(name.as_str()) {
             return Some(&needle[name.len()+1..]);
+        }
+        if needle.starts_with(base_name.as_str()) {
+            return Some(&needle[base_name.len()+1..]);
         }
         return Some(needle);
     }
@@ -356,7 +362,7 @@ impl Ingredient {
         Ok(match &self.kind {
             IngredientKind::BaseSolvent => match addition.kind {
                 IngredientKind::Herb { name } => IngredientKind::Infusion { names: vec!(name.to_string()) },
-                IngredientKind::Rot => IngredientKind::Infusion { names: vec!(addition.name()) },
+                IngredientKind::Rot => IngredientKind::Infusion { names: vec!(addition.base_name()) },
                 _ => IngredientKind::Mixture,
             },
             IngredientKind::Infusion { names } => match addition.kind {
@@ -367,7 +373,7 @@ impl Ingredient {
                 },
                 IngredientKind::Rot => {
                     let mut names = names.clone();
-                    names.push(addition.name());
+                    names.push(addition.base_name());
                     IngredientKind::Infusion { names }
                 },
                 _ => IngredientKind::Mixture,

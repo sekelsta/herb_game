@@ -141,6 +141,10 @@ impl World {
         if params == "bottle" {
             return "Nice try. You can't fit a bottle inside a bottle.".to_string();
         }
+        // Already checked in bottle(ingredient), but we check here too to avoid taking an item out of the cauldron and putting it back inthe stachel without bottling it
+        if self.empty_bottles <= 0 {
+            return "You don't have an empty glass bottle. Buy more bottles, or sell or dump out your potions. Customers may or may not return the empty bottle afterwards.".to_string();
+        }
         match self.take_ingredient(&params, |ingr: &Ingredient| ingr.container == Container::None) {
             Ok(mut ingr) => {
                 let result = self.bottle(&mut ingr);
@@ -156,7 +160,7 @@ impl World {
             Container::Bottle => Err(format!("The {} is already bottled.", ingredient.full_name())),
             Container::None => {
                 if self.empty_bottles <= 0 {
-                    return Err("You don't have an empty glass bottle. Buy more bottles, or sell your potions. Customers may or may not return the empty bottle afterwards.".to_string());
+                    return Err("You don't have an empty glass bottle. Buy more bottles, or sell or dump out your potions. Customers may or may not return the empty bottle afterwards.".to_string());
                 }
                 self.empty_bottles -= 1;
                 let result = format!("You put the {} into a clean bottle.", ingredient.full_name());
