@@ -24,6 +24,8 @@ impl Herb {
             container: Container::None,
             elements: self.elements.clone(),
             toxicity: self.toxicity,
+            effect: None,
+            strength: 0.0,
         }
         // Deliberately do not check for potion effects - you need to do something with the herb first
     }

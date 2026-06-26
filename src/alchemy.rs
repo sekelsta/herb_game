@@ -35,21 +35,21 @@ const EVAPORABLE_ELEMENTS: [Element; 8] = [
 pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Water][Modifier::Provide] = 3;
-    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, }
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Spirit][Modifier::Provide] = 3;
-    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, }
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
-    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, }
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, effect: None, strength: 0.0, }
 });
 pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Taint][Modifier::Provide] = 3;
     elements[Element::Taint][Modifier::Stabilize] = 3;
-    Ingredient { kind: IngredientKind::Rot, solvent: Solvent::Water, container: Container::None, elements, toxicity: 1.0, }
+    Ingredient { kind: IngredientKind::Rot, solvent: Solvent::Water, container: Container::None, elements, toxicity: 1.0, effect: None, strength: 0.0, }
 });
 
 #[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
@@ -129,7 +129,6 @@ impl Container {
 #[derive(Clone, Debug)]
 pub enum IngredientKind {
     BaseSolvent,
-    Potion { effect: Effect, strength: f32 },
     Herb { name: &'static str },
     Decoction { names: Vec<String> },
     Infusion { names: Vec<String> },
@@ -141,6 +140,8 @@ pub enum IngredientKind {
 pub struct Ingredient {
     pub kind: IngredientKind,
     pub solvent: Solvent,
+    pub effect: Option<Effect>,
+    pub strength: f32,
     pub container: Container,
     pub elements: EnumMap<Element, EnumMap<Modifier, i32>>,
     pub toxicity: f32,
@@ -151,9 +152,11 @@ static ALL_TRUE: Lazy<EnumMap<Element, EnumMap<Modifier, bool>>> = Lazy::new(|| 
 });
 impl Ingredient {
     pub fn base_name(&self) -> String {
+        if let Some(effect) = self.effect {
+            return effect.potion_name(&self.solvent);
+        }
         match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
-            IngredientKind::Potion { effect, .. } => effect.potion_name(&self.solvent),
             IngredientKind::Herb { name} => name.to_string(),
             IngredientKind::Infusion { names } | IngredientKind::Decoction { names } => names.join(", "),
             IngredientKind::Mixture => "concoction".to_string(),
@@ -162,11 +165,11 @@ impl Ingredient {
     }
 
     pub fn brew_name(&self) -> String {
+        if let Some(effect) = self.effect {
+            return format!("{} ({}% strength)", effect.potion_name(&self.solvent), (self.strength * 100.0).round() as i32);
+        }
         match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
-            IngredientKind::Potion { effect, strength} => {
-                format!("{} ({}% strength)", effect.potion_name(&self.solvent), (strength * 100.0).round() as i32)
-            }
             IngredientKind::Herb { name} => match self.solvent {
                 Solvent::Air => format!("dry {}", name),
                 Solvent::Water => format!("aqueous {}", name),
@@ -260,10 +263,10 @@ impl Ingredient {
     }
 
     pub fn show_in_progress(&self, discoveries: &KnowledgeState) -> String {
-        match &self.kind {
-            IngredientKind::Potion { effect, strength } => format!("{:?} base: {}. Effect: {} ({}% strength)", self.solvent, self.display_elements(discoveries), effect.to_title_case(), (strength * 100.0).round() as i32),
-            _ => format!("{:?} base: {}", self.solvent, self.display_elements(discoveries)),
+        if let Some(effect) = self.effect {
+            return format!("{:?} base: {}. Effect: {} ({}% strength)", self.solvent, self.display_elements(discoveries), effect.to_title_case(), (self.strength * 100.0).round() as i32);
         }
+        format!("{:?} base: {}", self.solvent, self.display_elements(discoveries))
     }
 
     pub fn matches_name(&self, needle: &str) -> bool {
@@ -291,9 +294,9 @@ impl Ingredient {
     }
 
     pub fn sale_value(&self) -> i32 {
-        let base_value = match self.kind {
-            IngredientKind::Potion { effect, strength } => (strength * strength * effect.sale_value() as f32).ceil() as i32,
-            _ => 0
+        let base_value = match self.effect {
+            Some(effect) => (self.strength * self.strength * effect.sale_value() as f32).ceil() as i32,
+            None => 0
         };
         // Don't include container value, because the bottles will be returned
         base_value// + self.container.sale_value()
@@ -338,13 +341,13 @@ impl Ingredient {
         }
     }
 
-    pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
+    pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {use std::io::{stdout, Write};
         let boil_text = self.boil(discoveries);
         match (&mut self.kind, &addition.kind) {
             (IngredientKind::BaseSolvent, IngredientKind::Herb { name }) => self.kind = IngredientKind::Decoction { names: vec!(name.to_string()) },
-            (IngredientKind::Decoction { names }, IngredientKind::Herb { name }) => names.push(name.to_string()),
+            (IngredientKind::Decoction { names }, IngredientKind::Herb { name }) => {println!("adding names");names.push(name.to_string())},
             (IngredientKind::Decoction { names: base_names }, IngredientKind::Decoction { names: addition_names }) => base_names.append(&mut addition_names.clone()),
-            _ => self.kind = IngredientKind::Mixture,
+            _ => {println!("setting mixture of {:?} and {:?}", self.kind.clone(), addition.kind.clone());self.kind = IngredientKind::Mixture},
         };
         self.apply(addition, discoveries);
         format!("{}\n{}", boil_text, self.show_in_progress(discoveries))
@@ -452,18 +455,16 @@ impl Ingredient {
     }
 
     pub fn update_effect(&mut self, discoveries: &mut KnowledgeState) {
-        if let IngredientKind::Potion { .. } = self.kind {
-            self.kind = IngredientKind::Mixture;
-        }
-        let mut strength = 0.0;
+        self.effect = None;
+        self.strength = 0.0;
         for potion in &*REFERENCE_POTIONS {
             let effectiveness = potion.calc_strength(self);
-            if effectiveness > strength {
-                strength = effectiveness;
-                self.kind = IngredientKind::Potion { effect: potion.effect, strength };
+            if effectiveness > self.strength {
+                self.strength = effectiveness;
+                self.effect = Some(potion.effect);
             }
         }
-        if let IngredientKind::Potion { effect, .. } = self.kind {
+        if let Some(effect) = self.effect {
             discoveries.effects[effect] = true;
         }
     }
