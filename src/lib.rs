@@ -534,9 +534,8 @@ impl World {
             response.push(x);
         }
 
-        if response.is_empty() {
-            return regional_message.to_string();
-        }
+        response.push(regional_message.to_string());
+
         response.join("\n")
     }
 
