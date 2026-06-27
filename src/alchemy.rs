@@ -340,7 +340,7 @@ impl Ingredient {
         }
     }
 
-    pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {use std::io::{stdout, Write};
+    pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
         let boil_text = self.boil(discoveries);
         match (&mut self.kind, &addition.kind) {
             (IngredientKind::BaseSolvent, IngredientKind::Herb { name }) => self.kind = IngredientKind::Decoction { names: vec!(name.to_string()) },

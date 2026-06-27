@@ -339,6 +339,9 @@ impl World {
                 "You bought an empty bottle.".to_string()
             }
             "spirits" => {
+                if !self.discoveries.spirits_unlocked() {
+                    return "You're not skilled enough to work with that yet.".to_string();
+                }
                 if self.money < spirits_price {
                     return format!("You only have {} silver and can't afford {} for some spirits", self.money, spirits_price);
                 }
@@ -347,6 +350,9 @@ impl World {
                 "You bought spirits.".to_string()
             }
             "oil" => {
+                if !self.discoveries.oil_unlocked() {
+                    return "You're not skilled enough to work with that yet.".to_string();
+                }
                 if self.money < oil_price {
                     return format!("You only have {} silver and can't afford {} for oil", self.money, oil_price);
                 }
@@ -515,7 +521,7 @@ pub fn step(command: &str) -> String {
             "buy" => world.buy(&params),
             "exp"|"xp"|"status" => world.experience(),
             "map" | "surroundings" => world.regions[world.current_region].local_map(),
-            "book"|"textbook"|"alchemy" => ALCHEMY_BOOK.to_string(),
+            "book"|"textbook"|"alchemy" => world.discoveries.book(),
             "look" => world.look(),
             "help" => help(),
             _ => format!("You're not sure how to '{}'. Try 'help'.", verb),

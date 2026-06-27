@@ -41,6 +41,8 @@ fn map_elements(entries: &[(Element, Modifier, i32)]) -> EnumMap<Element, EnumMa
 
 pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
 // ------ Beginner herbs ------ //
+    // Elements: Earth, Water, Air, Fire
+    // Accessible modifiers: Provide
     Herb {
         name: "dandelion",
         tier: 0,
@@ -48,7 +50,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         //moisture: [0.2, 0.8],
         toxicity: 0.0,
         elements: map_elements(&[
-            (Air, Provide, 3),
+            (Air, Provide, 2),
             (Fire, Provide, 1),
             (Earth, Provide, 2),
             (Spirit, Strengthen, 2),
@@ -56,25 +58,14 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         biomes: vec!(Field, Garden, Village),
     },
     Herb {
-        name: "rose",
-        tier: 0,
-        toxicity: 0.0,
-        elements: map_elements(&[
-            (Air, Provide, 1),
-            (Fire, Provide, 1),
-            (Earth, Provide, 1),
-            (Taint, Strengthen, -2),
-        ]),
-        biomes: vec!(Garden),
-    },
-    Herb {
         name: "white clover",
         tier: 0,
         toxicity: 0.0,
         elements: map_elements(&[
-            (Earth, Provide, 2),
-            (Mana, Provide, 1),
+            (Earth, Provide, 1),
+            (Light, Stabilize, 1),
             (Shadow, Strengthen, -2),
+            (Mana, Stabilize, 1),
         ]),
         biomes: vec!(Field, Village),
     },
@@ -96,8 +87,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         tier: 0,
         toxicity: 0.0,
         elements: map_elements(&[
-            (Air, Provide, 2),
-            (Earth, Provide, 2),
+            (Air, Provide, 1),
             (Fire, Provide, 1),
         ]),
         biomes: vec!(Garden, Field),
@@ -107,51 +97,81 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         tier: 0,
         toxicity: 0.0,
         elements: map_elements(&[
-            (Air, Provide, 4),
-            (Shadow, Strengthen, 3),
+            (Air, Provide, 3),
+            (Shadow, Strengthen, 2),
             (Earth, Provide, 1),
         ]),
         biomes: vec!(Field, WildflowerMeadow),
     },
+    Herb {
+        name: "wild strawberry",
+        tier: 0,
+        toxicity: 0.0,
+        elements: map_elements(&[
+            (Air, Provide, 1),
+            (Water, Provide, 1),
+            (Ice, Strengthen, 1),
+        ]),
+        biomes: vec!(FriendlyForest),
+    },
 // ------ Tier 1 herbs ------ //
+    // New elements: Spirit, Light, Shadow
+    // Accessible modifiers: Provide, Strengthen
+    Herb {
+        name: "rose",
+        tier: 1,
+        toxicity: 0.0,
+        elements: map_elements(&[
+            (Air, Provide, 1),
+            (Light, Provide, 1),
+            (Light, Strengthen, 1),
+            (Earth, Provide, 1),
+            (Fire, Strengthen, 1),
+            (Taint, Strengthen, -2),
+        ]),
+        biomes: vec!(Garden),
+    },
     Herb {
         name: "sunflower",
         tier: 1,
         toxicity: 0.0,
         elements: map_elements(&[
             (Light, Provide, 3),
-            (Mana, Provide, 1),
+            (Earth, Provide, 1),
             (Fire, Strengthen, 2),
             (Ice, Strengthen, -3),
         ]),
         biomes: vec!(Field, Village, WildflowerMeadow),
     },
-    Herb {
-        name: "tulip",
-        tier: 1,
-        toxicity: 0.3,
-        elements: map_elements(&[
-            (Water, Provide, 1),
-            (Ice, Provide, 2),
-            (Void, Provide, 1),
-            (Ice, Strengthen, 1),
-            (Void, Stabilize, 3),
-            (Spirit, Stabilize, -2),
-        ]),
-        biomes: vec!(Garden, Village),
-    },
-    Herb {
-        name: "bluebell",
-        tier: 1,
-        toxicity: 0.3,
-        elements: map_elements(&[
-            (Mana, Provide, 2),
-            (Void, Provide, 2),
-            (Taint, Provide, 1),
-        ]),
-        biomes: vec!(FriendlyForest),
-    },
 // ------ Tier 2 herbs ------ //
+    // New elements: Ice, Thunder, Mana
+    // Accessible modifiers: Provide, Strengthen, Stabilize
+    Herb {
+        name: "watermint",
+        tier: 1,
+        toxicity: 0.0,
+        elements: map_elements(&[
+            (Ice, Provide, 3),
+            (Air, Strengthen, 3),
+            (Shadow, Provide, 2),
+            (Water, Provide, 1),
+        ]),
+        biomes: vec!(MeadowRiver),
+    },
+    Herb {
+        name: "heal-all",
+        tier: 2,
+        toxicity: 0.0,
+        elements: map_elements(&[
+            (Earth, Provide, 2),
+            (Water, Provide, 1),
+            (Thunder, Strengthen, 1),
+            (Light, Strengthen, 3),
+            (Shadow, Provide, 1),
+            (Shadow, Stabilize, 1),
+        ]),
+        biomes: vec!(Village),
+    },
     Herb {
         name: "burdock",
         tier: 2,
@@ -164,18 +184,6 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
             (Ice, Stabilize, -3),
         ]),
         biomes: vec!(FriendlyForest, WildflowerMeadow, Field),
-    },
-    Herb {
-        name: "watermint",
-        tier: 2,
-        toxicity: 0.0,
-        elements: map_elements(&[
-            (Ice, Provide, 3),
-            (Air, Strengthen, 3),
-            (Shadow, Provide, 2),
-            (Water, Provide, 1),
-        ]),
-        biomes: vec!(MeadowRiver),
     },
     Herb {
         name: "bull thistle",
@@ -192,9 +200,10 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         ]),
         biomes: vec!(MeadowRiver, WildflowerMeadow),
     },
+// ------ Tier 3 herbs ------ //
     Herb {
         name: "jack-in-the-pulpit",
-        tier: 2,
+        tier: 3,
         toxicity: 0.6,
         elements: map_elements(&[
             (Mana, Provide, 3),
@@ -207,20 +216,30 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         ]),
         biomes: vec!(FriendlyForest),
     },
-// ------ Tier 3 herbs ------ //
     Herb {
-        name: "heal-all",
+        name: "bluebell",
         tier: 3,
-        toxicity: 0.0,
+        toxicity: 0.3,
         elements: map_elements(&[
-            (Earth, Provide, 2),
-            (Water, Provide, 1),
-            (Thunder, Provide, 1),
-            (Light, Strengthen, 3),
-            (Shadow, Provide, 1),
-            (Shadow, Stabilize, 1),
+            (Mana, Provide, 2),
+            (Void, Provide, 2),
+            (Taint, Provide, 1),
         ]),
-        biomes: vec!(Village),
+        biomes: vec!(FriendlyForest),
+    },
+    Herb {
+        name: "tulip",
+        tier: 3,
+        toxicity: 0.3,
+        elements: map_elements(&[
+            (Water, Provide, 1),
+            (Ice, Provide, 2),
+            (Void, Provide, 1),
+            (Ice, Strengthen, 1),
+            (Void, Stabilize, 3),
+            (Spirit, Stabilize, -2),
+        ]),
+        biomes: vec!(Garden, Village),
     },
     Herb {
         name: "jewelweed",
@@ -325,14 +344,6 @@ pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
             (Shadow, Strengthen, 2),
         ]),
         biomes: vec!(FriendlyForest, PineForest),
-    },
-    Herb {
-        name: "wild strawberry",
-        tier: 1,
-        toxicity: 0.0,
-        elements: map_elements(&[
-        ]),
-        biomes: vec!(FriendlyForest),
     },
     Herb {
         name: "buttercup",

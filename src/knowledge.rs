@@ -3,6 +3,10 @@ use enum_map::EnumMap;
 
 use crate::{Effect, Element, Modifier};
 
+pub const ALCHEMY_BOOK_ONE: &str = "Introduction to herbal brews
+Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron should you want evaporation to happen faster.
+Which, if any, potion is created depends on how many energies of each element are available in the brew. For instance, a combination of air and earth without too much fire is good for healing, as written by Guldin Schatzkarmmer in 1598. A little fire may not ruin the work, but will make the effect weaker. I recommend experimenting to see what effects you can discover and what elements they are created by.";
+
 pub const ALCHEMY_BOOK: &str = "Alchemy for Dummies
 If you are just starting out, alchemy can seem quite daunting! But don't worry, it is.
 There are two main procedures to know about: infusion and decoction. Both are much simpler than they sound. Infusion is soaking the ingredient in a liquid for a long time. This is typically done in a jar or bottle, left sitting in a cool dark place such as a shelf. Meanwhile decoction is a shorter soak at a much hotter temperature, that is, your standard boil-in-a-cauldron treatment witches have been practicing for aeons.
@@ -45,6 +49,14 @@ impl KnowledgeState {
 
     pub fn count_effects(&self) -> usize {
         self.effects.values().filter(|x| **x).count()
+    }
+
+    pub fn spirits_unlocked(&self) -> bool {
+        self.herb_tier >= 1
+    }
+
+    pub fn oil_unlocked(&self) -> bool {
+        self.herb_tier >= 2
     }
 
     pub fn ready_to_advance(&self) -> bool {
@@ -94,5 +106,9 @@ impl KnowledgeState {
             return "You've had a long day. Try sleeping on it.".to_string();
         }
         format!("Gathered {}/{} herbs of {}/{} species and brewed potions with {}/{} unique effects.", gathered, self.next_gathered, species, self.next_species, effects, self.next_effects)
+    }
+
+    pub fn book(&self) -> String {
+        ALCHEMY_BOOK_ONE.to_string()
     }
 }
