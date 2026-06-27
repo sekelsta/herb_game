@@ -100,7 +100,7 @@ impl Region {
         enum_map!(
             Hut => Region {
                 name: "Home Sweet Home",
-                description: "A simple hut with a cauldron and rack of drying herbs in the back.",
+                description: "A simple hut with a cauldron and rack of drying herbs in the back yard.",
                 routes: enum_map!(
                     West => Garden,
                     East | Northeast => MeadowRiver,

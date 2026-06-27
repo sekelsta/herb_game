@@ -1,9 +1,11 @@
 use std::str::FromStr;
 use enum_map::EnumMap;
+use rand::RngExt;
 use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 
 mod alchemy;
+mod elements;
 mod herbs;
 mod knowledge;
 mod potions;
@@ -11,6 +13,7 @@ mod region;
 
 use crate::potions::Effect;
 use crate::alchemy::*;
+use crate::elements::*;
 use crate::region::*;
 use crate::knowledge::*;
 use crate::herbs::*;
@@ -141,7 +144,7 @@ impl World {
         if params == "bottle" {
             return "Nice try. You can't fit a bottle inside a bottle.".to_string();
         }
-        // Already checked in bottle(ingredient), but we check here too to avoid taking an item out of the cauldron and putting it back inthe stachel without bottling it
+        // Already checked in bottle(ingredient), but we check here too to avoid taking an item out of the cauldron and putting it back inthe satchel without bottling it
         if self.empty_bottles <= 0 {
             return "You don't have an empty glass bottle. Buy more bottles, or sell or dump out your potions. Customers may or may not return the empty bottle afterwards.".to_string();
         }
@@ -263,9 +266,12 @@ impl World {
             added = Some(self.fill_cauldron(&WATER));
         }
         let decocted = self.cauldron.as_mut().unwrap().decoct(&addition, &mut self.discoveries);
-        match added {
-            Some(added) => format!("{}\n{}", added, decocted),
-            None => decocted,
+        let destabilized = self.tick_elemental_stability();
+        match (added, destabilized) {
+            (Some(added), Some(destabilized)) => format!("{}\n{}\n{}", added, decocted, destabilized),
+            (None, Some(destabilized)) => format!("{}\n{}", decocted, destabilized),
+            (Some(added), None) => format!("{}\n{}", added, decocted),
+            (None, None) => decocted,
         }
     }
 
@@ -323,6 +329,97 @@ impl World {
         let result = base.infuse(&addition, &mut self.discoveries);
         self.infusion_shelf.push(base);
         format!("Bottle of [{}] added to shelf to infuse over time.", result)
+    }
+
+    fn tick_elemental_stability(&mut self) -> Option<String> {
+        let brew = self.cauldron.as_mut()?;
+        let taint_instability = brew.elements[Element::Taint][Modifier::Provide] - brew.elements[Element::Taint][Modifier::Stabilize];
+        if taint_instability > Element::Taint.base_stability() {
+            let num_taintable = self.infusion_shelf.len() + self.satchel.len();
+            for i in 0..taint_instability {
+                if num_taintable <= 0 {
+                    break;
+                }
+                let r = rand::rng().random_range(0..num_taintable);
+                if r < self.infusion_shelf.len() {
+                    self.infusion_shelf[r].taint(&mut self.discoveries);
+                } else {
+                    self.satchel[r - self.infusion_shelf.len()].taint(&mut self.discoveries);
+                }
+            }
+            self.cauldron = None;
+            return Some(Element::Taint.unstable_message().to_string());
+        }
+        for (element, status) in brew.elements {
+            match element {
+                Element::Taint => (), // Already handled
+                Element::Water | Element::Light | Element::Thunder | Element::Ice | Element::Air => (), // Handled next
+                Element::Fire | Element::Earth | Element::Spirit | Element::Shadow | Element::Mana | Element::Void => {
+                    if status[Modifier::Provide] - status[Modifier::Stabilize] > element.base_stability() {
+                        self.cauldron = None;
+                        return Some(element.unstable_message().to_string());
+                    }
+                }
+            }
+        }
+        if brew.is_unstable(Element::Ice) {
+            // TODO: Consider doing something interesting with the water element here
+            self.cauldron = Some(WATER.clone());
+            return Some(Element::Ice.unstable_message().to_string());
+        }
+        let mut messages = Vec::new();
+        if brew.is_unstable(Element::Water) {
+            let mut all_elements = Vec::new();
+            let mut elemental_total = 0;
+            for (element, modifiers) in brew.elements {
+                elemental_total += modifiers[Modifier::Provide];
+                all_elements.push((element, modifiers[Modifier::Provide]));
+            }
+            let mut r = rand::rng().random_range(0..elemental_total);
+            for (element, amount) in all_elements {
+                if r > amount {
+                    r -= amount;
+                }
+                else {
+                    brew.elements[element][Modifier::Provide] -= 1;
+                    messages.push(format!("{} {}.", Element::Water.unstable_message(), element));
+                    break;
+                }
+            }
+        }
+        if brew.is_unstable(Element::Light) {
+            brew.elements[Element::Light][Modifier::Provide] = 0;
+            brew.elements[Element::Light][Modifier::Stabilize] = 0;
+            brew.elements[Element::Light][Modifier::Strengthen] = 0;
+            messages.push(Element::Light.unstable_message().to_string());
+        }
+        if brew.is_unstable(Element::Thunder) {
+            for (element, mut status) in brew.elements {
+                for (modifier, _amount) in status {
+                    status[modifier] *= 3 / 4;
+                }
+            }
+            messages.push(Element::Thunder.unstable_message().to_string());
+        }
+        if brew.is_unstable(Element::Air) {
+            for (element, mut status) in brew.elements {
+                for (modifier, _amount) in status {
+                    status[modifier] /= 2;
+                }
+            }
+            messages.push(Element::Air.unstable_message().to_string());
+        }
+        for (element, status) in brew.elements {
+            if status[Modifier::Provide] - status[Modifier::Stabilize] == element.base_stability() {
+                messages.push(element.warning().to_string());
+            }
+        }
+
+        if messages.is_empty() {
+            None
+        } else {
+            Some(messages.join("\n"))
+        }
     }
 
     fn buy(&mut self, params: &str) -> String {

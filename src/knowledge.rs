@@ -5,7 +5,8 @@ use crate::{Effect, Element, Modifier};
 
 pub const ALCHEMY_BOOK_ONE: &str = "Introduction to herbal brews
 Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron should you want evaporation to happen faster.
-Which, if any, potion is created depends on how many energies of each element are available in the brew. For instance, a combination of air and earth without too much fire is good for healing, as written by Guldin Schatzkarmmer in 1598. A little fire may not ruin the work, but will make the effect weaker. I recommend experimenting to see what effects you can discover and what elements they are created by.";
+Which, if any, potion is created depends on how many energies of each element are available in the brew. For instance, a combination of air and earth without too much fire is good for healing, as written by Guldin Schatzkarmmer in 1598. A little fire may not ruin the work, but will make the effect weaker. I recommend experimenting to see what effects you can discover and what elements they are created by.
+Oh, and be careful about adding too many of the same type of element to a brew. You'll see when it happens.";
 
 pub const ALCHEMY_BOOK: &str = "Alchemy for Dummies
 If you are just starting out, alchemy can seem quite daunting! But don't worry, it is.

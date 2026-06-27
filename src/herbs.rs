@@ -26,6 +26,7 @@ impl Herb {
             toxicity: self.toxicity,
             effect: None,
             strength: 0.0,
+            is_tainted: false,
         }
         // Deliberately do not check for potion effects - you need to do something with the herb first
     }

@@ -3,82 +3,30 @@ use once_cell::sync::Lazy;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::{Effect, KnowledgeState};
+use crate::{Effect, Element, KnowledgeState};
+use crate::elements::{TAINTABLE_ELEMENTS, EVAPORABLE_ELEMENTS};
 use crate::potions::REFERENCE_POTIONS;
-
-const TAINTABLE_ELEMENTS: [Element; 11] = [
-    Element::Mana,
-    Element::Spirit,
-    Element::Shadow,
-    Element::Void,
-    Element::Thunder,
-    Element::Air,
-    Element::Ice,
-    Element::Light,
-    Element::Fire,
-    Element::Water,
-    Element::Earth,
-];
-
-const EVAPORABLE_ELEMENTS: [Element; 8] = [
-    Element::Void,
-    Element::Air,
-    Element::Spirit,
-    Element::Light,
-    Element::Fire,
-    Element::Shadow,
-    Element::Water,
-    Element::Mana,
-];
 
 pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Water][Modifier::Provide] = 3;
-    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
 });
 pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Spirit][Modifier::Provide] = 3;
-    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, }
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
 });
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
-    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, effect: None, strength: 0.0, }
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
 });
 pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Taint][Modifier::Provide] = 3;
     elements[Element::Taint][Modifier::Stabilize] = 3;
-    Ingredient { kind: IngredientKind::Rot, solvent: Solvent::Water, container: Container::None, elements, toxicity: 1.0, effect: None, strength: 0.0, }
+    Ingredient { kind: IngredientKind::Rot, solvent: Solvent::Water, container: Container::None, elements, toxicity: 1.0, effect: None, strength: 0.0, is_tainted: false, }
 });
 
-#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
-pub enum Element {
-    Earth,
-    Water,
-    Air,
-    Fire,
-    Ice,
-    Thunder,
-    Spirit, // AKA Ether
-    Mana,
-    Taint,
-    Void,
-    Light,
-    Shadow,
-}
-
-impl Element {
-    fn soluble(&self, solvent: &Solvent) -> bool {
-        use Element::*;
-        match solvent {
-            Solvent::Water => !matches!(self, Earth | Taint | Mana),
-            Solvent::Ether => !matches!(self, Earth | Thunder),
-            Solvent::Oil => matches!(self, Void | Air | Taint | Light | Shadow),
-            Solvent::Air => matches!(self, Void | Air | Spirit | Light),
-            Solvent::Vivo => true,
-        }
-    }
-}
 
 #[derive(Clone, Copy, Debug, Enum, EnumIter, PartialEq)]
 pub enum Modifier {
@@ -144,6 +92,7 @@ pub struct Ingredient {
     pub container: Container,
     pub elements: EnumMap<Element, EnumMap<Modifier, i32>>,
     pub toxicity: f32,
+    pub is_tainted: bool,
 }
 
 static ALL_TRUE: Lazy<EnumMap<Element, EnumMap<Modifier, bool>>> = Lazy::new(|| enum_map! {
@@ -196,9 +145,13 @@ impl Ingredient {
     }
 
     pub fn full_name(&self) -> String {
-        match self.container {
+        let name = match self.container {
             Container::Bottle => format!("bottle of {}", self.brew_name()),
             Container::None => self.brew_name(),
+        };
+        match self.is_tainted {
+            true => format!("{} (tainted)", name),
+            false => name,
         }
     }
 
@@ -301,6 +254,11 @@ impl Ingredient {
         base_value// + self.container.sale_value()
     }
 
+    pub fn is_unstable(&self, element: Element) -> bool {
+        let modifiers = &self.elements[element];
+        return modifiers[Modifier::Provide] - modifiers[Modifier::Stabilize] > element.base_stability();
+    }
+
     pub fn boil(&mut self, discoveries: &mut KnowledgeState) -> String {
         // Evaporation
         let mut evaporated = None;
@@ -340,13 +298,20 @@ impl Ingredient {
         }
     }
 
+    pub fn taint(&mut self, _discoveries: &mut KnowledgeState) {
+        self.elements[Element::Taint][Modifier::Provide] += 1;
+        self.is_tainted = true;
+        // Don't update effect, because this is usually called on raw ingredients, not brews
+        // Could go either way on automatically discovering taint on that ingredient, but for now, leave it out in case it started with taint too
+    }
+
     pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
         let boil_text = self.boil(discoveries);
         match (&mut self.kind, &addition.kind) {
             (IngredientKind::BaseSolvent, IngredientKind::Herb { name }) => self.kind = IngredientKind::Decoction { names: vec!(name.to_string()) },
-            (IngredientKind::Decoction { names }, IngredientKind::Herb { name }) => {println!("adding names");names.push(name.to_string())},
+            (IngredientKind::Decoction { names }, IngredientKind::Herb { name }) => names.push(name.to_string()),
             (IngredientKind::Decoction { names: base_names }, IngredientKind::Decoction { names: addition_names }) => base_names.append(&mut addition_names.clone()),
-            _ => {println!("setting mixture of {:?} and {:?}", self.kind.clone(), addition.kind.clone());self.kind = IngredientKind::Mixture},
+            _ => self.kind = IngredientKind::Mixture,
         };
         self.apply(addition, discoveries);
         format!("{}\n{}", boil_text, self.show_in_progress(discoveries))
@@ -473,11 +438,11 @@ impl Ingredient {
         // Water or alcohol evaporate without a container
         match self.container {
             Container::None => match &self.solvent {
-                Solvent::Water | Solvent::Ether => {
+                Solvent::Water | Solvent::Ether | Solvent::Vivo => {
                     self.solvent = Solvent::Air;
                     Some(format!("{0} dried into {1}", old_name, self.full_name()))
                 }
-                _ => None,
+                Solvent::Air | Solvent::Oil => None,
             },
             Container::Bottle => if let Solvent::Vivo = self.solvent {
                 *self = ROT.clone();
