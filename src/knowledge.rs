@@ -59,6 +59,10 @@ impl KnowledgeState {
         self.herb_tier >= 2
     }
 
+    pub fn infusion_known(&self) -> bool {
+        self.herb_tier >= 2
+    }
+
     pub fn ready_to_advance(&self) -> bool {
         self.herbs_gathered >= self.next_gathered && self.herb_species.len() >= self.next_species && self.count_effects() >= self.next_effects
     }

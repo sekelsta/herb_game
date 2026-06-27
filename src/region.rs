@@ -140,7 +140,7 @@ impl Region {
             },
             Village => Region {
                 name: "Village Square",
-                description: "You can buy or sell things here.\nEmpty bottles cost 1 silver apiece, spirits cost 8 and oil costs 24.",
+                description: "You can buy or sell things here.\nEmpty bottles cost 1 silver apiece. For advanced alchemists, spirits cost 8 silver and oil costs 24.",
                 routes: enum_map!(
                     South => Hut,
                     North | Northeast | Northwest => Field,

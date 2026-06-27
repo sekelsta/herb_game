@@ -270,6 +270,9 @@ impl World {
     }
 
     fn infuse_named(&mut self, params: &str) -> String {
+        if !self.discoveries.infusion_known() {
+            return "You don't know how to do that yet.".to_string();
+        }
         let base = match self.take_ingredient(params, |_| true) {
             Ok(ingredient) => ingredient,
             Err(result) => return result,
@@ -467,7 +470,7 @@ inv or satchel - list items inside your satchel
 ==Brewing==
 book - read your alchemy instruction manual
 brew [ingredient] - add the ingredient to the cauldron for a decoction
-soak [ingredient] - add the ingredient to a bottle for an infusion
+soak [ingredient] - add the ingredient to a bottle for an infusion. Not available in early game.
 stir - stir the cauldron as it boils, allowing lighter elements to evaporate
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 dump - empty out the cauldron and get rid of the contents
