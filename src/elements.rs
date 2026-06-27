@@ -1,35 +1,32 @@
-use enum_map::{enum_map, Enum, EnumMap};
-use once_cell::sync::Lazy;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use enum_map::Enum;
 
 use crate::Solvent;
 
 use Element::*;
 
 pub const TAINTABLE_ELEMENTS: [Element; 11] = [
-    Element::Mana,
-    Element::Spirit,
-    Element::Shadow,
-    Element::Void,
-    Element::Thunder,
-    Element::Air,
-    Element::Ice,
-    Element::Light,
-    Element::Fire,
-    Element::Water,
-    Element::Earth,
+    Mana,
+    Spirit,
+    Shadow,
+    Void,
+    Thunder,
+    Air,
+    Ice,
+    Light,
+    Fire,
+    Water,
+    Earth,
 ];
 
 pub const EVAPORABLE_ELEMENTS: [Element; 8] = [
-    Element::Void,
-    Element::Air,
-    Element::Spirit,
-    Element::Light,
-    Element::Fire,
-    Element::Shadow,
-    Element::Water,
-    Element::Mana,
+    Void,
+    Air,
+    Spirit,
+    Light,
+    Fire,
+    Shadow,
+    Water,
+    Mana,
 ];
 
 
@@ -51,7 +48,6 @@ pub enum Element {
 
 impl Element {
     pub fn soluble(&self, solvent: &Solvent) -> bool {
-        use Element::*;
         match solvent {
             Solvent::Water => !matches!(self, Earth | Taint | Mana),
             Solvent::Ether => !matches!(self, Earth | Thunder),
@@ -99,6 +95,7 @@ impl Element {
 
     pub fn base_stability(&self) -> i32 {
         match self {
+            Earth => 6,
             Void => 4,
             _ => 5,
         }

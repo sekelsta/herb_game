@@ -336,7 +336,7 @@ impl World {
         let taint_instability = brew.elements[Element::Taint][Modifier::Provide] - brew.elements[Element::Taint][Modifier::Stabilize];
         if taint_instability > Element::Taint.base_stability() {
             let num_taintable = self.infusion_shelf.len() + self.satchel.len();
-            for i in 0..taint_instability {
+            for _ in 0..taint_instability {
                 if num_taintable <= 0 {
                     break;
                 }
@@ -394,7 +394,7 @@ impl World {
             messages.push(Element::Light.unstable_message().to_string());
         }
         if brew.is_unstable(Element::Thunder) {
-            for (element, mut status) in brew.elements {
+            for (_element, mut status) in brew.elements {
                 for (modifier, _amount) in status {
                     status[modifier] *= 3 / 4;
                 }
@@ -402,7 +402,7 @@ impl World {
             messages.push(Element::Thunder.unstable_message().to_string());
         }
         if brew.is_unstable(Element::Air) {
-            for (element, mut status) in brew.elements {
+            for (_element, mut status) in brew.elements {
                 for (modifier, _amount) in status {
                     status[modifier] /= 2;
                 }
