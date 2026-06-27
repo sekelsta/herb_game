@@ -126,7 +126,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
             (Light, Provide, 1),
             (Light, Strengthen, 1),
             (Earth, Provide, 1),
-            (Fire, Strengthen, 1),
+            (Spirit, Strengthen, 1),
             (Taint, Strengthen, -2),
         ]),
         biomes: vec!(Garden),
