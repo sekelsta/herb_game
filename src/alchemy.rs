@@ -31,7 +31,6 @@ const EVAPORABLE_ELEMENTS: [Element; 8] = [
     Element::Mana,
 ];
 
-// Names are hardcoded in name() so make sure to adjust both places if changing
 pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Water][Modifier::Provide] = 3;
