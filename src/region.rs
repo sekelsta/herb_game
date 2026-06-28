@@ -5,6 +5,8 @@ use strum_macros::EnumString;
 use crate::KnowledgeState;
 use crate::herbs::*;
 
+use RegionEnum::*;
+
 const MAP: &str = r#"Surroundings:
 PPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwwww
 PPPPPPPPPPPPPPPPPPwPPPwwwwwwwwwwwwww
@@ -62,7 +64,7 @@ pub enum Direction {
     Southwest,
 }
 
-#[derive(Clone, Copy, Debug, Enum, EnumString, PartialEq)]
+#[derive(Clone, Copy, Debug, Enum, EnumString, Eq, Hash, PartialEq)]
 #[strum(ascii_case_insensitive)]
 pub enum RegionEnum {
     #[strum(serialize = "hut", serialize = "home")]
@@ -82,6 +84,22 @@ pub enum RegionEnum {
     ForestRiver,
     #[strum(serialize = "meadow river")]
     MeadowRiver,
+}
+
+impl RegionEnum {
+    pub fn to_title_case(&self) -> &'static str {
+        match self {
+            Hut => "Hut",
+            Garden => "Garden",
+            Village => "Village",
+            Field => "Field",
+            FriendlyForest => "Friendly Forest",
+            WildflowerMeadow => "Wildflower Meadow",
+            PineForest => "Pine Forest",
+            ForestRiver => "Forest Riverbank",
+            MeadowRiver => "Meadow Riverbank",
+        }
+    }
 }
 
 pub struct Region {

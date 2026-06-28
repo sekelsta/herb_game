@@ -111,7 +111,7 @@ impl World {
             return "You don't recognize this plant. You leave it be and keep looking.".to_string();
         }
         let result = format!("You collected {}.", found.name);
-        self.discoveries.herb_species.insert(found.name);
+        self.discoveries.mark_herb_found(found, self.current_region);
         self.discoveries.herbs_gathered += 1;
         self.satchel.push(found.to_ingredient());
         result        
@@ -562,6 +562,7 @@ map - display a map of the area
 ==Foraging==
 gather or forage - search for herbs in your current region, with priority for a specific herb if you name one
 inv or satchel - list items inside your satchel
+herbs - lists where you've found each herb before
 
 ==Brewing==
 book - read your alchemy instruction manual
@@ -611,6 +612,7 @@ pub fn step(command: &str) -> String {
             "wait"|"advance"|"sleep" => world.advance_time(),
             "inv"|"inventory"|"satchel"|"list" => world.list_inventory(),
             "gather"|"forage"|"collect" => world.forage(&params),
+            "herb"|"herbs" => world.discoveries.list_herb_locations(),
             "brew"|"decoct"|"cauldron" => world.decoct_named(&params),
             "soak"|"infuse" => world.infuse_named(&params),
             "bottle" => world.bottle_named(&params),

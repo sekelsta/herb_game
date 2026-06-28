@@ -1,7 +1,7 @@
-use std::collections::{HashSet, HashMap};
+use std::collections::{HashMap, HashSet};
 use enum_map::EnumMap;
 
-use crate::{Effect, Element, Modifier};
+use crate::{Effect, Element, Herb, Modifier, RegionEnum};
 
 pub const ALCHEMY_BOOK_ONE: &str = "Introduction to herbal brews
 Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron in the rare case where you want evaporation to happen faster.
@@ -19,7 +19,7 @@ That's about all you need to know to get started. I encourage you to experiment 
 pub struct KnowledgeState {
     pub herb_tier: i32,
     pub effects: EnumMap<Effect, bool>,
-    pub herb_species: HashSet<&'static str>,
+    pub herb_locations: HashMap<&'static str, HashSet<RegionEnum>>,
     pub herbs_gathered: u32,
     pub stability_known: bool,
     pub known_elements: HashMap<&'static str, EnumMap<Element, EnumMap<Modifier, bool>>>,
@@ -36,7 +36,7 @@ impl KnowledgeState {
         KnowledgeState {
             herb_tier: 0,
             effects: EnumMap::default(),
-            herb_species: HashSet::new(),
+            herb_locations: HashMap::new(),
             herbs_gathered: 0,
             stability_known: false,
             known_elements: HashMap::new(),
@@ -46,6 +46,11 @@ impl KnowledgeState {
             next_species: 5,
             next_gathered: 12,
         }
+    }
+
+    pub fn mark_herb_found(&mut self, herb: &Herb, region: RegionEnum) {
+        let set = self.herb_locations.entry(herb.name).or_insert(HashSet::default());
+        set.insert(region);
     }
 
     pub fn count_effects(&self) -> usize {
@@ -65,7 +70,7 @@ impl KnowledgeState {
     }
 
     pub fn ready_to_advance(&self) -> bool {
-        self.herbs_gathered >= self.next_gathered && self.herb_species.len() >= self.next_species && self.count_effects() >= self.next_effects
+        self.herbs_gathered >= self.next_gathered && self.herb_locations.len() >= self.next_species && self.count_effects() >= self.next_effects
     }
 
     pub fn update(&mut self) -> Option<String> {
@@ -96,7 +101,7 @@ impl KnowledgeState {
 
     pub fn status(&self) -> String {
         let effects = self.count_effects();
-        let species = self.herb_species.len();
+        let species = self.herb_locations.len();
         let gathered = self.herbs_gathered;
         if self.herb_tier >= self.max_tier {
             return "You've learned everything. Good job!".to_string();
@@ -111,6 +116,13 @@ impl KnowledgeState {
             return "You've had a long day. Try sleeping on it.".to_string();
         }
         format!("Gathered {}/{} herbs of {}/{} species and brewed potions with {}/{} unique effects.", gathered, self.next_gathered, species, self.next_species, effects, self.next_effects)
+    }
+
+    pub fn list_herb_locations(&self) -> String {
+        if self.herb_locations.is_empty() {
+            return "You haven't collected any herbs yet, but you spotted some you recognized in the overgrown farm field north of town.".to_string();
+        }
+        self.herb_locations.iter().map(|(herb, locations)| format!("{}: {}", herb, locations.iter().map(|x| x.to_title_case().to_ascii_lowercase()).collect::<Vec<String>>().join(", "))).collect::<Vec<String>>().join("\n")
     }
 
     pub fn book(&self) -> String {
