@@ -440,6 +440,10 @@ impl Ingredient {
             Container::None => match &self.solvent {
                 Solvent::Water | Solvent::Ether | Solvent::Vivo => {
                     self.solvent = Solvent::Air;
+                    if self.elements[Element::Water][Modifier::Provide] > 0 {
+                        self.elements[Element::Water][Modifier::Provide] -= 1;
+                        self.elements[Element::Water][Modifier::Stabilize] += 1;
+                    }
                     Some(format!("{0} dried into {1}", old_name, self.full_name()))
                 }
                 Solvent::Air | Solvent::Oil => None,
