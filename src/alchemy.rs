@@ -374,8 +374,16 @@ impl Ingredient {
     pub fn add(&mut self, ingredient: &Ingredient, discoveries: &mut KnowledgeState) {
         self.toxicity += ingredient.toxicity;
         for (element, modifiers) in ingredient.elements {
-            // TODO: Discover strengthening, or only provide?
             for (modifier, amount) in modifiers {
+                if amount != 0 {
+                    match ingredient.kind {
+                        IngredientKind::Herb { name } => {
+                            let map = discoveries.known_elements.entry(name).or_insert(EnumMap::default());
+                            map[element][modifier] = true;
+                        },
+                        _ => (),
+                    }
+                }
                 self.elements[element][modifier] += amount;
             }
         }
