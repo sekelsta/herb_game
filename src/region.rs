@@ -100,7 +100,7 @@ impl Region {
         enum_map!(
             Hut => Region {
                 name: "Home Sweet Home",
-                description: "A simple hut with a cauldron and rack of drying herbs in the back yard.",
+                description: "A simple hut with a cauldron and rack of drying herbs in the back yard.\nNorth, a winding stone path leads to the village. To the south and east, you hear the burbling of a small river. To the southwest is a shady, open forest where the locals gather strawberries. To the west is your disused garden.",
                 routes: enum_map!(
                     West => Garden,
                     East | Northeast => MeadowRiver,
@@ -114,7 +114,7 @@ impl Region {
             },
             Garden => Region {
                 name: "Your Garden",
-                description: "Needs some work. You decide you'd rather keep foraging from the wild.\nA few herbs have survived from better-tended times, with occasional weeds sprouting around them.",
+                description: "Needs some work. You decide you'd rather keep foraging from the wild.\nA few herbs have survived from better-tended times, with occasional weeds sprouting around them.\nYour home just east of here. To the south is a shady, open forest, and north of here lies the village.",
                 routes: enum_map!(
                     East => Hut,
                     Northwest => PineForest,
@@ -127,7 +127,7 @@ impl Region {
             },
             FriendlyForest => Region {
                 name: "Friendly Forest",
-                description: "Dapples of light filter though the soft leaves.",
+                description: "Dapples of light filter though the soft leaves.\nTo the east, you hear the burbling of a small river. Your garden is to the north.",
                 routes: enum_map!(
                     North | Northwest => Garden,
                     East | Southeast => ForestRiver,
@@ -140,7 +140,7 @@ impl Region {
             },
             Village => Region {
                 name: "Village Square",
-                description: "You can buy or sell things here.\nEmpty bottles cost 1 silver apiece. For advanced alchemists, spirits cost 8 silver and oil costs 24.",
+                description: "You can buy or sell things here.\nEmpty bottles cost 2 silver apiece. For advanced alchemists, spirits cost 8 silver and oil costs 24.\nWhen you sell potions, customers usually return the empty bottle within a day or two.\nNorthward, the road passes by a field overgrown with weeds that only an alchemist could love. To the east is a wildflower meadow where the villagers harvest hay for their animals. To the west stands a forest of dark pines. South, a winding stone path leads home.",
                 routes: enum_map!(
                     South => Hut,
                     North | Northeast | Northwest => Field,
@@ -154,11 +154,12 @@ impl Region {
             },
             Field => Region {
                 name: "Weedy Field",
-                description: "An overgrown farm field. The farmer says you can have the weeds for free.",
+                description: "An overgrown farm field. The farmer says you can have the weeds for free.\nThe road passing by takes you back south to the village. To the east is a wildflower meadow, and to the west is a pine forest.",
                 routes: enum_map!(
                     South | Southeast | Southwest => Village,
-                    East | Northeast | North => WildflowerMeadow,
+                    East | Northeast => WildflowerMeadow,
                     West | Northwest => PineForest,
+                    North => Field,
                 ),
                 current_herbs: Vec::new(),
                 x: 17, y: 3,
@@ -166,7 +167,7 @@ impl Region {
             },
             PineForest => Region {
                 name: "Pine Forest",
-                description: "Soft needles crackle beneath your feet.",
+                description: "Soft needles crackle beneath your feet.\nEast takes you to an overgrown farm field, or heading a bit south of that steers you towards the village.",
                 routes: enum_map!(
                     East | Northeast => Field,
                     South | Southeast => Village,
@@ -178,7 +179,7 @@ impl Region {
             },
             WildflowerMeadow => Region {
                 name: "Wildflower Meadow",
-                description: "Tall grass for haying, interrupted by colorful flowers.",
+                description: "Tall grass for haying, interrupted by colorful flowers.\nTo the west is an overgrown farm field. To the south, you can hear a gentle river.",
                 routes: enum_map!(
                     West | Southwest => Field,
                     South | Southeast => MeadowRiver,
@@ -190,7 +191,7 @@ impl Region {
             },
             MeadowRiver => Region {
                 name: "Meadow Riverbank",
-                description: "A river flows beside the meadow, the bright sun sparkling off its waters.",
+                description: "A river flows beside the meadow, the bright sun sparkling off its waters.\nYour home is a short walk west of here. The river flows out of a forest to the southwest, while the meadow stretches on to the north.",
                 routes: enum_map!(
                     North => WildflowerMeadow,
                     Northwest => Village,
@@ -204,7 +205,7 @@ impl Region {
             },
             ForestRiver => Region {
                 name: "Forest Riverbank",
-                description: "A river flows through the forest.",
+                description: "A river flows through the forest.\nYour home is a little ways to the north. The river flows northeast into an open meadow, while heading west takes you deeper into the forest.",
                 routes: enum_map!(
                     North => Hut,
                     Northwest => Garden,
