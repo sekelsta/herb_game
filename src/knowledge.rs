@@ -27,7 +27,6 @@ pub struct KnowledgeState {
     pub effects: EnumMap<Effect, bool>,
     pub herb_locations: HashMap<&'static str, HashSet<RegionEnum>>,
     pub herbs_gathered: u32,
-    pub stability_known: bool,
     pub known_elements: HashMap<&'static str, EnumMap<Element, EnumMap<Modifier, bool>>>,
 
     pub max_tier: i32,
@@ -44,7 +43,6 @@ impl KnowledgeState {
             effects: EnumMap::default(),
             herb_locations: HashMap::new(),
             herbs_gathered: 0,
-            stability_known: false,
             known_elements: HashMap::new(),
 
             max_tier: 3,
@@ -69,6 +67,10 @@ impl KnowledgeState {
 
     pub fn oil_unlocked(&self) -> bool {
         self.herb_tier >= 2
+    }
+
+    pub fn stability_known(&self) -> bool {
+        self.herb_tier >= 1
     }
 
     pub fn infusion_known(&self) -> bool {

@@ -183,8 +183,24 @@ impl Ingredient {
             if Modifier::iter().all(|modifier| status[modifier] == 0) {
                 continue;
             }
-            if !Modifier::iter().any(|modifier| discovered[element][modifier]) {
+            // Note this triggers only for herbs. For in-progress potions, all elements present are considered discovered.
+            if !Modifier::iter().any(|modifier| discovered[element][modifier] && (discoveries.stability_known() || modifier != Modifier::Stabilize)) {
                 any_unknown = true;
+                continue;
+            }
+
+            // Theoretically this shouldn't be hit because all mechanisms leaving an existing provide undiscovered should also leave all others undiscovered,
+            // showing "Elemental affinities unknown" from above
+            if !discovered[element][Modifier::Provide] && status[Modifier::Provide] != 0 {
+                any_unknown = true;
+                continue;
+            }
+
+            let provide = if discovered[element][Modifier::Provide] { status[Modifier::Provide] } else { 0 };
+            let strengthen = if discovered[element][Modifier::Strengthen] { status[Modifier::Strengthen] } else { 0 };
+            let stability = if discovered[element][Modifier::Stabilize] && discoveries.stability_known() { status[Modifier::Stabilize] } else { 0 };
+            if provide == 0 && strengthen == 0 && stability == 0 {
+                // Skip showing this as unknown inside the cauldron
                 continue;
             }
 
@@ -193,11 +209,8 @@ impl Ingredient {
             }
             any_known = true;
 
-            let provide = if discovered[element][Modifier::Provide] { status[Modifier::Provide] } else { 0 };
-            let strengthen = if discovered[element][Modifier::Strengthen] { status[Modifier::Strengthen] } else { 0 };
-            let stability = if discovered[element][Modifier::Stabilize] { status[Modifier::Stabilize] } else { 0 };
 
-            match (provide != 0, strengthen == 0, stability == 0 || !discoveries.stability_known) {
+            match (provide != 0, strengthen == 0, stability == 0) {
                 (_, true, true) => string.push_str(format!("{} {:?}", provide, element).as_str()),
                 (true, true, false) => string.push_str(format!("{} {:?} ({:+} stability)", provide, element, stability).as_str()),
                 (false, true, false) => string.push_str(format!("{:+} {:?} stability", stability, element).as_str()),
@@ -404,7 +417,7 @@ impl Ingredient {
                     Modifier::Stabilize => self.elements[element][Modifier::Stabilize] += amount,
                     Modifier::Provide => self.elements[element][Modifier::Provide] += amount,
                 }
-                if before != self.elements[element][modifier] && (discoveries.stability_known || modifier != Modifier::Stabilize) {
+                if before != self.elements[element][modifier] && (discoveries.stability_known() || modifier != Modifier::Stabilize) {
                     match ingredient.kind {
                         IngredientKind::Herb { name } => {
                             let map = discoveries.known_elements.entry(name).or_insert(EnumMap::default());
