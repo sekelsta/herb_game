@@ -417,6 +417,7 @@ impl Ingredient {
     pub fn apply(&mut self, ingredient: &Ingredient, discoveries: &mut KnowledgeState) {
         self.toxicity += ingredient.toxicity;
         for (element, modifiers) in ingredient.elements {
+            // TODO: These are not necessarily being checked in a consistent order
             for (modifier, amount) in modifiers {
                 let power = self.elements[element][Modifier::Provide];
                 let before = self.elements[element][modifier];
@@ -425,7 +426,8 @@ impl Ingredient {
                     Modifier::Stabilize => self.elements[element][Modifier::Stabilize] += amount,
                     Modifier::Provide => self.elements[element][Modifier::Provide] += amount,
                 }
-                if before != self.elements[element][modifier] && (discoveries.stability_known() || modifier != Modifier::Stabilize) {
+                if before != self.elements[element][modifier] && (discoveries.stability_known() || modifier != Modifier::Stabilize)
+                        || (modifier == Modifier::Strengthen && power > 0 && before != 0) {
                     match ingredient.kind {
                         IngredientKind::Herb { name } => {
                             let map = discoveries.known_elements.entry(name).or_insert(EnumMap::default());
