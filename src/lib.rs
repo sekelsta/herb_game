@@ -545,10 +545,20 @@ impl World {
 
     fn look(&mut self) -> String {
         let region = &self.regions[self.current_region];
-        match region.status(&self.discoveries) {
-            None => format!("{}\n{}", region.name, region.description),
-            Some(status) => format!("{}\n{}\n{}", region.name, region.description, status),
+        let mut vec = Vec::new();
+        vec.push(region.name.to_string());
+        vec.push(region.description.to_string());
+        if let Some(status) = region.status(&self.discoveries) {
+            vec.push(status);
         }
+        if self.current_region == RegionEnum::Hut {
+            match &self.cauldron {
+                Some(brew) => vec.push(format!("Cauldron: {}\n    {}", brew.full_name(), brew.show_in_progress(&self.discoveries))),
+                None => vec.push("Cauldron: empty".to_string()),
+            }
+        }
+
+        vec.join("\n")
     }
 }
 
@@ -556,7 +566,7 @@ impl World {
 fn help() -> String {
 "==Navigation==
 north, south, east, west, [location name] - travel
-look - describe your current location
+look - describe your current location, including cauldron contents
 map - display a map of the area
 
 ==Foraging==
