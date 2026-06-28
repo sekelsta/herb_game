@@ -401,7 +401,7 @@ impl Ingredient {
                 let before = self.elements[element][modifier];
                 match modifier {
                     Modifier::Strengthen => self.elements[element][Modifier::Provide] = (power + amount.min(power)).max(0),
-                    Modifier::Stabilize => self.elements[element][Modifier::Stabilize]+= amount,
+                    Modifier::Stabilize => self.elements[element][Modifier::Stabilize] += amount,
                     Modifier::Provide => self.elements[element][Modifier::Provide] += amount,
                 }
                 if before != self.elements[element][modifier] && (discoveries.stability_known || modifier != Modifier::Stabilize) {

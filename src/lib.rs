@@ -530,11 +530,12 @@ impl World {
         if bottles_returned > 0 {
             response.push(format!("Customers returned {} empty bottles.", bottles_returned));
         }
+
+        response.push(regional_message.to_string());
+
         if let Some(x) = xp {
             response.push(x);
         }
-
-        response.push(regional_message.to_string());
 
         response.join("\n")
     }
@@ -633,6 +634,7 @@ pub fn step(command: &str) -> String {
             "exp"|"xp"|"status" => world.experience(),
             "map" | "surroundings" => world.regions[world.current_region].local_map(),
             "book"|"textbook"|"alchemy" => world.discoveries.book(),
+            "note"|"experiement"|"experiments" => world.discoveries.show_experiment_note(),
             "look" => world.look(),
             "help" => help(),
             _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
