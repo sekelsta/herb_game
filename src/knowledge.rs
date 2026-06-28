@@ -91,7 +91,6 @@ impl KnowledgeState {
                 self.next_effects = 5;
                 self.next_species = 8;
                 self.next_gathered = 24;
-                // TODO: Add custom per-tier suggestions on where to explore next
                 Some("You had a dream about studying plants with your grandma. In the morning, you find a note that definitely wasn't there before. Type 'note' to read it.".to_string())
             },
             2 => {
