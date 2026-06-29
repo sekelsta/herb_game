@@ -130,7 +130,13 @@ impl World {
             };
             return Err("Specify an ingredient".to_string())
         }
-        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && x.matches_name(params)) {
+        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.full_name().as_str())) {
+            return Ok(self.satchel.remove(pos));
+        }
+        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.brew_name().as_str())) {
+            return Ok(self.satchel.remove(pos));
+        }
+        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.base_name().as_str())) {
             return Ok(self.satchel.remove(pos));
         }
         if let Some(pos) = self.unlimited_ingredients.iter().position(|x| x.matches_name(params)) {
