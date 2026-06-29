@@ -654,6 +654,7 @@ pub fn step(command: &str) -> String {
             "map" | "surroundings" => world.regions[world.current_region].local_map(),
             "book"|"textbook"|"alchemy" => world.discoveries.book(),
             "note"|"experiement"|"experiments" => world.discoveries.show_experiment_note(),
+            "infusion"|"infusions" => world.discoveries.show_infusion_instructions(),
             "look" => world.look(),
             "help" => help(),
             _ => format!("You're not sure how to '{}'. Try 'help'.", verb),

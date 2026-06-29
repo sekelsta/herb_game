@@ -14,13 +14,9 @@ Trial 2: Start again with an empty cauldron, and again add water and bring it to
 Trial 3: As before, but red clover was added first, then dandelions. The mixture began to thicken at four dandelions, but held its liquid form.
 What does this mean? It seems the red clover is having some effect on the earth provided by the dandelion. Further experimentation may clarify the details.";
 
-pub const ALCHEMY_BOOK: &str = "Alchemy for Dummies
-If you are just starting out, alchemy can seem quite daunting! But don't worry, it is.
-There are two main procedures to know about: infusion and decoction. Both are much simpler than they sound. Infusion is soaking the ingredient in a liquid for a long time. This is typically done in a jar or bottle, left sitting in a cool dark place such as a shelf. Meanwhile decoction is a shorter soak at a much hotter temperature, that is, your standard boil-in-a-cauldron treatment witches have been practicing for aeons.
-Whichever method you use, you will need to concern yourself with the elemental energies of your materials. Each desired effect requires a certain combination of elements to achieve. Some variance is allowable, but makes for a weaker potion.
-So how do you actually brew a potion? Start with a liquid base, usually water but you may also use spirits or oil. Bring your cauldron to a boil, then add your herbs one at a time. Each herb you add may provide elemental energy directly, strengthen or weaken pre-existing elements from earlier additions to your brew, or affect the stability of an element. Having a lot of any single element in a potion can lead to unexpected effects. Increased stability allows for more extreme potions, while destabilizing effects can turn your potion into an elemental chain reaction even at weaker strengths. Speaking of chain reactions, watch out for taint. Any elemental taint in your brew will convert other elements into more of itself, which can quickly get out of hand. As you go certain elements may evaporate, so take care with the order and timing. Try out a practice batch and you'll understand. You can dump out your cauldron if the contents have become unsalvageable. Or if you're satisfied with what you've made, bottle it and wash your cauldron for the next batch.
-Infusions are if anything simpler than decoctions. Put your herb right into a bottle with any liquid base, and leave it in a cool dark place, perhaps a shelf, while you sleep. After enough time has passed you will see that the liquid has taken on some of the color of the plant. This indicates that the plant's elemental energies have leached into the liquid, and your infusion is ready to be filtered and put to use. You can make potions directly as infusions, you can add them to your boiling decoctions in place of the herb, or you can even add another herb and infuse again. You can also infuse an herb into a decoction, with or without existing potion effects, to add to the elements and potentially create a new potion out of it. Note that infusing an herb and decocting an herb will not have quite the same effect. Only elements the herb provides directly will be available to create potion effects on the infusion. Herbs which strengthen existing elements will not do so when added to an infusion. Another thing to note is that more of the elemental energy stays with the plant compared to a decoction. Certain types of elements, if they are not soluble in your chosen base, will not become available at all. This can be used to your advantage to purify the remaining elements, and can allow for higher quality potions if you know what you're doing.
-That's about all you need to know to get started. I encourage you to experiment for youself to discover what effects you can create. With trial and error you'll be able to refine your recipes, and as you go on you'll discover cheaper and more effective combinations of ingredients. Good luck!";
+pub const ALCHEMY_BOOK_THREE: &str = "Infusion of herbs
+Usually, we boil an herb in water to extract the elemental energies. However, I've found that soaking it in cold water overnight also works. You can also use spirits or oil as a base instead of water. Leave the herb to soak in a cool, dark, place, such as a shelf, and once it's ready you'll see the liquid has taken on the color and elemental properties of the herb. Unlike a boiled decoction, subtle effects are preserved. Another thing to note is that more of the elemental energy stays with the plant compared to a decoction. Certain types of elements, if they are not soluble in your chosen base, will not become available at all. This can be used to your advantage to purify the remaining elements, and can allow for higher quality potions if you know what you're doing.
+For a stronger infusion, you can add another herb the next day. You can also infuse into a tea, or brew your infusion in a cauldron.";
 
 pub struct KnowledgeState {
     pub herb_tier: i32,
@@ -113,7 +109,7 @@ impl KnowledgeState {
                 self.next_effects = 10;
                 self.next_species = 15;
                 self.next_gathered = 36;
-                Some("You've learned to recognize new plant species!".to_string())
+                Some("You feel comfortable with your cauldron and ready to read about new methods. Type 'infusions' to see what the library has on it. You've also learned to recognize new herbs.".to_string())
             },
             // Max level
             x if x >= self.max_tier => Some("You've learned to recognize new plant species!".to_string()),
@@ -162,5 +158,13 @@ impl KnowledgeState {
         }
 
         ALCHEMY_BOOK_TWO.to_string()
+    }
+
+    pub fn show_infusion_instructions(&self) -> String {
+        if self.herb_tier < 2 {
+            return "You feel like you could do with more hands-on experience before reading theory.".to_string();
+        }
+
+        ALCHEMY_BOOK_THREE.to_string()
     }
 }
