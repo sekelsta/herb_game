@@ -213,11 +213,19 @@ impl World {
     }
 
     fn stir(&mut self) -> String {
-        if self.has_cauldron() { match &mut self.cauldron {
-            Some(ingredient) => format!("{0}\n{1}", ingredient.boil(&mut self.discoveries), ingredient.show_in_progress(&self.discoveries)),
-            None => "The cauldron is empty.".to_string(),
-        }} else {
-            "You see nothing to stir.".to_string()
+        if !self.has_cauldron() {
+            return "You see nothing to stir.".to_string();
+        }
+
+        let evaporated = match &mut self.cauldron {
+            Some(ingredient) => format!("{}\n{}", ingredient.boil(&mut self.discoveries), ingredient.show_in_progress(&self.discoveries)),
+            None => return "The cauldron is empty.".to_string(),
+        };
+
+        let destabilized = self.tick_elemental_stability();
+        match destabilized {
+            Some(message) => format!("{}\n{}", evaporated, message),
+            None => evaporated,
         }
     }
 
