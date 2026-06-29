@@ -269,7 +269,8 @@ impl Ingredient {
 
     pub fn is_unstable(&self, element: Element) -> bool {
         let modifiers = &self.elements[element];
-        return modifiers[Modifier::Provide] - modifiers[Modifier::Stabilize] > element.base_stability();
+        let provide = modifiers[Modifier::Provide];
+        return provide > 0 && provide - modifiers[Modifier::Stabilize] > element.base_stability();
     }
 
     pub fn boil(&mut self, discoveries: &mut KnowledgeState) -> String {

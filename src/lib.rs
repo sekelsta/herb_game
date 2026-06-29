@@ -341,9 +341,9 @@ impl World {
 
     fn tick_elemental_stability(&mut self) -> Option<String> {
         let brew = self.cauldron.as_mut()?;
-        let taint_instability = brew.elements[Element::Taint][Modifier::Provide] - brew.elements[Element::Taint][Modifier::Stabilize];
-        if taint_instability > Element::Taint.base_stability() {
+        if brew.is_unstable(Element::Taint) {
             let num_taintable = self.infusion_shelf.len() + self.satchel.len();
+            let taint_instability = brew.elements[Element::Taint][Modifier::Provide] - brew.elements[Element::Taint][Modifier::Stabilize];
             for _ in 0..taint_instability {
                 if num_taintable <= 0 {
                     break;
