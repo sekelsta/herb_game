@@ -1,6 +1,7 @@
 use enum_map::{enum_map, Enum, EnumMap};
 use rand::seq::SliceRandom;
 use strum_macros::EnumString;
+use serde::{Serialize, Deserialize};
 
 use crate::KnowledgeState;
 use crate::herbs::*;
@@ -64,7 +65,7 @@ pub enum Direction {
     Southwest,
 }
 
-#[derive(Clone, Copy, Debug, Enum, EnumString, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Enum, EnumString, Eq, Hash, PartialEq, Serialize, Deserialize)]
 #[strum(ascii_case_insensitive)]
 pub enum RegionEnum {
     #[strum(serialize = "hut", serialize = "home")]
@@ -106,7 +107,7 @@ pub struct Region {
     pub name: &'static str,
     pub description: &'static str,
     pub routes: EnumMap<Direction, RegionEnum>,
-    pub current_herbs: Vec<&'static Herb>,
+    pub current_herbs: Vec<Plant>,
     x: i32, y: i32,
     pub sleep_result: Result<&'static str, &'static str>,
 }
@@ -248,15 +249,15 @@ impl Region {
                 self.current_herbs.remove(i);
             }
         }
-        for herb in REFERENCE_HERBS.iter() {
+        for (species, herb) in REFERENCE_HERBS.iter() {
             if herb.biomes.contains(biome) {
                 let chance = (5 - herb.tier) as f64 / 15.0; // Written when highest herb tier is 3
                 if rand::random_bool(chance) {
-                    self.current_herbs.push(herb);
+                    self.current_herbs.push(species);
                 }
                 if rand::random_bool(chance) {
-                    self.current_herbs.push(herb);
-                    self.current_herbs.push(herb);
+                    self.current_herbs.push(species);
+                    self.current_herbs.push(species);
                 }
             }
         }
@@ -264,7 +265,7 @@ impl Region {
     }
 
     pub fn status(&self, discoveries: &KnowledgeState) -> Option<String> {
-        if self.current_herbs.iter().any(|h| h.tier <= discoveries.herb_tier) {
+        if self.current_herbs.iter().any(|h| REFERENCE_HERBS[*h].tier <= discoveries.herb_tier) {
             return Some("You spot some herbs you recognize.".to_string());
         }
         None

@@ -1,5 +1,6 @@
 use enum_map::EnumMap;
 use rand::RngExt;
+use serde::{Serialize, Deserialize};
 
 use crate::*;
 
@@ -73,18 +74,18 @@ impl World {
     }
 
     pub fn forage(&mut self, count: i32) -> String {
-        if REFERENCE_HERBS.iter().all(|h| !h.biomes.contains(&self.current_region)) {
+        if REFERENCE_HERBS.values().all(|h| !h.biomes.contains(&self.current_region)) {
             return "Nothing grows here.".to_string();
         }
         let available = &mut self.regions[self.current_region].current_herbs;
         if available.len() == 0 {
             return "The area is picked clean.".to_string();
         }
-        if available.iter().all(|h| h.tier > self.discoveries.herb_tier) {
+        if available.iter().all(|p| REFERENCE_HERBS[*p].tier > self.discoveries.herb_tier) {
             return "You don't recognize any herbs here.".to_string();
         }
         let found = available.remove(0);
-        if found.tier > self.discoveries.herb_tier {
+        if REFERENCE_HERBS[found].tier > self.discoveries.herb_tier {
             // Return it to the back.
             available.push(found);
             if count <= 1 {
@@ -92,7 +93,7 @@ impl World {
             }
             return format!("You don't recognize this plant. You leave it be and keep looking.\n{}", self.forage(count - 1));
         }
-        let result = format!("You collected {}.", found.name);
+        let result = format!("You collected {}.", found.to_string());
         self.discoveries.mark_herb_found(found, self.current_region);
         self.discoveries.herbs_gathered += 1;
         self.satchel.push(found.to_ingredient());
@@ -560,5 +561,14 @@ impl World {
         }
 
         vec.join("\n")
+    }
+
+    pub fn save_to_json(&self) -> String {
+        // TODO
+        serde_json::to_string(&self.satchel).unwrap()
+    }
+
+    pub fn load_from_json(&mut self, json: &str) {
+        self.satchel = serde_json::from_str(json).unwrap();
     }
 }

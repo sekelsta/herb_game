@@ -1,11 +1,13 @@
 use once_cell::sync::Lazy;
 use enum_map::{Enum, EnumMap};
+use serde::{Serialize, Deserialize};
+use strum_macros::{Display, IntoStaticStr};
 
 use crate::{Element, Ingredient, Modifier, Solvent};
 use Element::*;
 use Effect::*;
 
-#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Display, IntoStaticStr, Enum, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Effect {
     HealthBoost,
     CoughRemedy,
@@ -47,17 +49,17 @@ pub enum Effect {
 }
 
 impl Effect {
-    pub fn to_title_case(&self) -> String {
+    pub fn to_title_case(&self) -> &'static str {
         match self {
-            HealthBoost => "Health Boost".to_string(),
-            CoughRemedy => "Cough Remedy".to_string(),
-            FeverReducer => "Fever Reducer".to_string(),
-            InsectRepellent => "Insect Repellent".to_string(),
-            SnakeRepellent => "Snake Repellent".to_string(),
-            CharmProtection => "Charm Protection".to_string(),
-            PlantGrowth => "Plant Growth".to_string(),
-            WoundHealing => "Wound Healing".to_string(),
-            e => e.to_string(),
+            HealthBoost => "Health Boost",
+            CoughRemedy => "Cough Remedy",
+            FeverReducer => "Fever Reducer",
+            InsectRepellent => "Insect Repellent",
+            SnakeRepellent => "Snake Repellent",
+            CharmProtection => "Charm Protection",
+            PlantGrowth => "Plant Growth",
+            WoundHealing => "Wound Healing",
+            e => e.into(),
         }
     }
 

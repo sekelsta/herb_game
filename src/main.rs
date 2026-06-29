@@ -1,9 +1,17 @@
 use std::io::{self, BufRead, Write};
 
-use herb_game::{step, welcome};
+use herb_game::{step, welcome, welcome_on_load, save_to_json, load_from_json};
 
 fn main() -> io::Result<()> {
-    println!("{}", welcome());
+    let path = "save.json";
+    match std::fs::read_to_string(path) {
+        Ok(contents) => {
+            load_from_json(contents.as_str());
+            println!("{}", welcome_on_load());
+        },
+        Err(_) => println!("{}", welcome()),
+    }
+
     loop {
         print!("\n> ");
         io::stdout().flush().unwrap();
@@ -26,5 +34,7 @@ fn main() -> io::Result<()> {
         println!("{result}");
     }
 
-    Ok(())
+    let mut output = std::fs::File::create(path)?;
+    write!(output, "{}", save_to_json()) 
+    //Ok(())
 }

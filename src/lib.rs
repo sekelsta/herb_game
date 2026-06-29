@@ -107,10 +107,16 @@ pub fn step(command: &str) -> String {
 
 #[wasm_bindgen]
 pub fn save_to_json() -> String {
-    "TODO".to_string()
+    unsafe {
+        let world = &mut *(&raw mut WORLD);
+        world.save_to_json()
+    }
 }
 
 #[wasm_bindgen]
 pub fn load_from_json(json: &str) {
-    todo!()
+    unsafe {
+        let world = &mut *(&raw mut WORLD);
+        world.load_from_json(json);
+    }
 }

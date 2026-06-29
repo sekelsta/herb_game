@@ -1,9 +1,10 @@
 use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
+use serde::{Serialize, Deserialize};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::{Effect, Element, KnowledgeState};
+use crate::{Effect, Element, KnowledgeState, Plant};
 use crate::elements::{TAINTABLE_ELEMENTS, EVAPORABLE_ELEMENTS};
 use crate::potions::REFERENCE_POTIONS;
 
@@ -28,7 +29,7 @@ pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
 });
 
 
-#[derive(Clone, Copy, Debug, Enum, EnumIter, PartialEq)]
+#[derive(Clone, Copy, Debug, Enum, EnumIter, PartialEq, Serialize, Deserialize)]
 pub enum Modifier {
     Strengthen, // Weaken if value is negative
     Stabilize, // Destabilize if value is negative
@@ -37,7 +38,7 @@ pub enum Modifier {
     //Split,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Solvent {
     Air,
     Water,
@@ -58,7 +59,7 @@ impl Solvent {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum Container {
     Bottle,
     None,
@@ -73,17 +74,17 @@ impl Container {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum IngredientKind {
     BaseSolvent,
-    Herb { name: &'static str },
+    Herb { species: Plant },
     Decoction { names: Vec<String> },
     Infusion { names: Vec<String> },
     Mixture,
     Rot,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Ingredient {
     pub kind: IngredientKind,
     pub solvent: Solvent,
@@ -105,7 +106,7 @@ impl Ingredient {
         }
         match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
-            IngredientKind::Herb { name} => name.to_string(),
+            IngredientKind::Herb { species } => species.to_string(),
             IngredientKind::Infusion { names } | IngredientKind::Decoction { names } => names.join(", "),
             IngredientKind::Mixture => "concoction".to_string(),
             IngredientKind::Rot => "rot".to_string(),
@@ -118,12 +119,12 @@ impl Ingredient {
         }
         match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
-            IngredientKind::Herb { name} => match self.solvent {
-                Solvent::Air => format!("dry {}", name),
-                Solvent::Water => format!("aqueous {}", name),
-                Solvent::Ether => format!("spirit of {}", name),
-                Solvent::Oil => format!("{} oil", name),
-                Solvent::Vivo => format!("fresh {}", name),
+            IngredientKind::Herb { species } => match self.solvent {
+                Solvent::Air => format!("dry {}", species.to_string()),
+                Solvent::Water => format!("aqueous {}", species.to_string()),
+                Solvent::Ether => format!("spirit of {}", species.to_string()),
+                Solvent::Oil => format!("{} oil", species.to_string()),
+                Solvent::Vivo => format!("fresh {}", species.to_string()),
             },
             IngredientKind::Infusion { names } => match self.solvent {
                 Solvent::Air => format!("dried infusion of {}", names.join(", ")),
@@ -167,8 +168,8 @@ impl Ingredient {
     fn display_elements(&self, discoveries: &KnowledgeState) -> String {
         let mut string = "".to_string();
 
-        let discovered = if let IngredientKind::Herb { name } = self.kind {
-            discoveries.known_elements.get(name)
+        let discovered = if let IngredientKind::Herb { species } = self.kind {
+            discoveries.known_elements.get(&species)
         } else {
             Some(&*ALL_TRUE)
         };
@@ -322,8 +323,8 @@ impl Ingredient {
     pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
         let boil_text = self.boil(discoveries);
         match (&mut self.kind, &addition.kind) {
-            (IngredientKind::BaseSolvent, IngredientKind::Herb { name }) => self.kind = IngredientKind::Decoction { names: vec!(name.to_string()) },
-            (IngredientKind::Decoction { names }, IngredientKind::Herb { name }) => names.push(name.to_string()),
+            (IngredientKind::BaseSolvent, IngredientKind::Herb { species }) => self.kind = IngredientKind::Decoction { names: vec!(species.to_string()) },
+            (IngredientKind::Decoction { names }, IngredientKind::Herb { species }) => names.push(species.to_string()),
             (IngredientKind::Decoction { names: base_names }, IngredientKind::Decoction { names: addition_names }) => base_names.append(&mut addition_names.clone()),
             _ => self.kind = IngredientKind::Mixture,
         };
@@ -343,14 +344,14 @@ impl Ingredient {
 
         Ok(match &self.kind {
             IngredientKind::BaseSolvent => match addition.kind {
-                IngredientKind::Herb { name } => IngredientKind::Infusion { names: vec!(name.to_string()) },
+                IngredientKind::Herb { species } => IngredientKind::Infusion { names: vec!(species.to_string()) },
                 IngredientKind::Rot => IngredientKind::Infusion { names: vec!(addition.base_name()) },
                 _ => IngredientKind::Mixture,
             },
             IngredientKind::Infusion { names } => match addition.kind {
-                IngredientKind::Herb { name } => {
+                IngredientKind::Herb { species } => {
                     let mut names = names.clone();
-                    names.push(name.to_string());
+                    names.push(species.to_string());
                     IngredientKind::Infusion { names }
                 },
                 IngredientKind::Rot => {
@@ -378,8 +379,8 @@ impl Ingredient {
             for (modifier, amount) in modifiers {
                 if amount != 0 {
                     match ingredient.kind {
-                        IngredientKind::Herb { name } => {
-                            let map = discoveries.known_elements.entry(name).or_insert(EnumMap::default());
+                        IngredientKind::Herb { species } => {
+                            let map = discoveries.known_elements.entry(species).or_insert(EnumMap::default());
                             map[element][modifier] = true;
                         },
                         _ => (),
@@ -430,8 +431,8 @@ impl Ingredient {
                 if before != self.elements[element][modifier] && (discoveries.stability_known() || modifier != Modifier::Stabilize)
                         || (modifier == Modifier::Strengthen && power > 0 && before != 0) {
                     match ingredient.kind {
-                        IngredientKind::Herb { name } => {
-                            let map = discoveries.known_elements.entry(name).or_insert(EnumMap::default());
+                        IngredientKind::Herb { species } => {
+                            let map = discoveries.known_elements.entry(species).or_insert(EnumMap::default());
                             map[element][modifier] = true;
                         },
                         _ => (),

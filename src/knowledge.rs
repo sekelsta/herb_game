@@ -1,7 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use enum_map::EnumMap;
+use serde::{Serialize, Deserialize};
 
-use crate::{Effect, Element, Herb, Ingredient, Modifier, RegionEnum};
+use crate::{Effect, Element, Plant, Ingredient, Modifier, RegionEnum};
 
 pub const ALCHEMY_BOOK_ONE: &str = "Introduction to Herbal Brews
 Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron in the rare case where you want evaporation to happen faster. If you want to take a pause, you can bottle your mixture and add it back later.
@@ -18,12 +19,13 @@ pub const ALCHEMY_BOOK_THREE: &str = "Infusion of herbs
 Usually, we boil an herb in water to extract the elemental energies. However, I've found that soaking it in cold water overnight also works. You can also use spirits or oil as a base instead of water. Leave the herb to soak in a cool, dark, place, such as a shelf, and once it's ready you'll see the liquid has taken on the color and elemental properties of the herb. Unlike a boiled decoction, subtle effects are preserved. Another thing to note is that more of the elemental energy stays with the plant compared to a decoction. Certain types of elements, if they are not soluble in your chosen base, will not become available at all. This can be used to your advantage to purify the remaining elements, and can allow for higher quality potions if you know what you're doing.
 For a stronger infusion, you can add another herb the next day. You can also infuse into a tea, or brew your infusion in a cauldron.";
 
+#[derive(Serialize, Deserialize)]
 pub struct KnowledgeState {
     pub herb_tier: i32,
     recipes: EnumMap<Effect, Vec<(f32, Ingredient)>>,
-    pub herb_locations: HashMap<&'static str, HashSet<RegionEnum>>,
+    pub herb_locations: HashMap<Plant, HashSet<RegionEnum>>,
     pub herbs_gathered: u32,
-    pub known_elements: HashMap<&'static str, EnumMap<Element, EnumMap<Modifier, bool>>>,
+    pub known_elements: HashMap<Plant, EnumMap<Element, EnumMap<Modifier, bool>>>,
 
     pub max_tier: i32,
     // To next level
@@ -48,8 +50,8 @@ impl KnowledgeState {
         }
     }
 
-    pub fn mark_herb_found(&mut self, herb: &Herb, region: RegionEnum) {
-        let set = self.herb_locations.entry(herb.name).or_insert(HashSet::default());
+    pub fn mark_herb_found(&mut self, species: Plant, region: RegionEnum) {
+        let set = self.herb_locations.entry(species).or_insert(HashSet::default());
         set.insert(region);
     }
 

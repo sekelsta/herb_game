@@ -1,4 +1,5 @@
 use enum_map::Enum;
+use serde::{Serialize, Deserialize};
 
 use crate::Solvent;
 
@@ -30,7 +31,7 @@ pub const EVAPORABLE_ELEMENTS: [Element; 8] = [
 ];
 
 
-#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
+#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq, Serialize, Deserialize)]
 pub enum Element {
     Earth,
     Water,
