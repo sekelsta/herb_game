@@ -48,7 +48,7 @@ impl KnowledgeState {
             known_elements: HashMap::new(),
 
             max_tier: 3,
-            next_effects: 2,
+            next_effects: 3,
             next_species: 5,
             next_gathered: 12,
         }
@@ -104,15 +104,15 @@ impl KnowledgeState {
         self.herb_tier += 1;
         match self.herb_tier {
             1 => {
-                self.next_effects = 5;
-                self.next_species = 8;
+                self.next_effects = 6;
+                self.next_species = 10;
                 self.next_gathered = 24;
                 Some("You had a dream about studying plants with your grandma. In the morning, you find a note that definitely wasn't there before. Type 'note' to read it.".to_string())
             },
             2 => {
-                self.next_effects = 8;
-                self.next_species = 12;
-                self.next_gathered = 32;
+                self.next_effects = 10;
+                self.next_species = 15;
+                self.next_gathered = 36;
                 Some("You've learned to recognize new plant species!".to_string())
             },
             // Max level

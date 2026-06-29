@@ -35,6 +35,7 @@ pub enum Effect {
     Lightning,
     Freeze,
     Shock,
+    Shine,
     Poison,
     Darkness,
 }
@@ -84,6 +85,7 @@ impl Effect {
             Lightning => 25,
             Freeze => 26,
             Shock => 23,
+            Shine => 15,
             Poison => 13,
             Darkness => 28,
         }
@@ -103,7 +105,7 @@ impl Effect {
                 self.to_title_case().to_ascii_lowercase(),
             Patience | Rage | Fear | Courage | Resillience | Cleanliness | PlantGrowth =>
                 format!("potion of {}", self.to_title_case().to_ascii_lowercase()),
-            Love | Strength | Intelligence =>
+            Love | Strength | Intelligence | Shine =>
                 format!("{} potion", self.to_title_case().to_ascii_lowercase()),
             Sleep =>
                 format!("{} draught", self.to_title_case().to_ascii_lowercase()),
@@ -140,10 +142,10 @@ impl Potion {
         let mut ratio: f32 = 10.0; // Max strength before being more concentrated starts counting against you even in the correct ratio
         for (element, required) in self.elements {
             let provided = work.elements[element][Modifier::Provide];
-            // Allow up to one of each element to be missing
-            if required > provided + 1 {
-                return 0.0;
-            }
+            // Allow up to one of each element to be missing - commented out to see if getting rid of this helps
+            //if required > provided + 1 {
+                //return 0.0;
+            //}
             ref_total += required;
             correct_total += required.min(provided);
             incorrect_total += (required - provided).abs();
@@ -180,6 +182,12 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Water] = 3;
     }),
     // ------ Tier 1 ------ //
+    Potion::new(Sleep, |elements| {
+        elements[Water] = 3;
+        elements[Shadow] = 3;
+        elements[Spirit] = 1;
+        elements[Taint] = 1;
+    }),
     Potion::new(Love, |elements| {
         elements[Fire] = 3;
         elements[Air] = 3;
@@ -226,13 +234,23 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Light] = 5;
         elements[Shadow] = 4;
     }),
+    Potion::new(Darkness, |elements| {
+        elements[Shadow] = 6;
+        elements[Taint] = 1;
+        elements[Thunder] = 1;
+    }),
     // ------ Requires advanced elements ------ //
+    Potion::new(Shine, |elements| {
+        elements[Light] = 4;
+        elements[Mana] = 2;
+    }),
     Potion::new(Loveliness, |elements| {
         elements[Air] = 7;
         elements[Fire] = 3;
     }),
     Potion::new(Flame, |elements| {
         elements[Fire] = 8;
+        elements[Mana] = 2;
         elements[Earth] = 1;
     }),
     Potion::new(CoughRemedy, |elements| {
@@ -266,10 +284,6 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Shadow] = 3;
         elements[Taint] = 1;
     }),
-    Potion::new(Sleep, |elements| {
-        elements[Water] = 3;
-        elements[Taint] = 2;
-    }),
     Potion::new(Paralysis, |elements| {
         elements[Taint] = 3;
         elements[Void] = 3;
@@ -292,22 +306,20 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Light] = 5;
         elements[Fire] = 4;
         elements[Thunder] = 3;
+        elements[Mana] = 2;
     }),
     Potion::new(Lightning, |elements| {
         elements[Thunder] = 6;
         elements[Light] = 6;
+        elements[Mana] = 2;
     }),
     Potion::new(Freeze, |elements| {
         elements[Ice] = 8;
+        elements[Mana] = 2;
         elements[Earth] = 1;
     }),
     Potion::new(Poison, |elements| {
         elements[Taint] = 6;
         elements[Air] = 2;
-    }),
-    Potion::new(Darkness, |elements| {
-        elements[Shadow] = 6;
-        elements[Taint] = 1;
-        elements[Thunder] = 1;
     }),
 ));
