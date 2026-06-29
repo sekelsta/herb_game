@@ -5,7 +5,7 @@ use crate::{Element, Ingredient, Modifier, Solvent};
 use Element::*;
 use Effect::*;
 
-#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, PartialEq)]
+#[derive(Clone, Copy, Debug, strum_macros::Display, Enum, Eq, PartialEq)]
 pub enum Effect {
     HealthBoost,
     CoughRemedy,
@@ -163,16 +163,10 @@ impl Potion {
 }
 
 pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
-    // ------ Craftable with only basic elements ------ //
+    // ------ Tier 0 ------ //
     Potion::new(HealthBoost, |elements| {
         elements[Earth] = 4;
         elements[Air] = 4;
-    }),
-    Potion::new(Love, |elements| {
-        elements[Fire] = 3;
-        elements[Air] = 3;
-        elements[Ice] = 1;
-        elements[Thunder] = 1;
     }),
     Potion::new(Relaxation, |elements| {
         elements[Water] = 3;
@@ -185,15 +179,14 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Earth] = 5;
         elements[Water] = 3;
     }),
-    Potion::new(Loveliness, |elements| {
-        elements[Air] = 7;
+    // ------ Tier 1 ------ //
+    Potion::new(Love, |elements| {
         elements[Fire] = 3;
+        elements[Air] = 3;
+        elements[Light] = 3;
+        elements[Ice] = 1;
+        elements[Thunder] = 1;
     }),
-    Potion::new(Flame, |elements| {
-        elements[Fire] = 8;
-        elements[Earth] = 1;
-    }),
-    // ------ Requires advanced elements ------ //
     Potion::new(CharmProtection, |elements| {
         elements[Fire] = 4;
         elements[Earth] = 4;
@@ -205,6 +198,43 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Air] = 4;
         elements[Light] = 4;
     }),
+    Potion::new(InsectRepellent, |elements| {
+        elements[Light] = 4;
+        elements[Air] = 3;
+        elements[Fire] = 2;
+    }),
+    Potion::new(Intelligence, |elements| {
+        elements[Water] = 5;
+        elements[Spirit] = 4;
+        elements[Fire] = 3;
+    }),
+    Potion::new(PlantGrowth, |elements| {
+        elements[Water] = 4;
+        elements[Light] = 4;
+        elements[Earth] = 2;
+        elements[Air] = 2;
+    }),
+    Potion::new(Resillience, |elements| {
+        elements[Earth] = 4;
+        elements[Shadow] = 2;
+    }),
+    Potion::new(Courage, |elements| {
+        elements[Spirit] = 3;
+        elements[Fire] = 2;
+    }),
+    Potion::new(Perception, |elements| {
+        elements[Light] = 5;
+        elements[Shadow] = 4;
+    }),
+    // ------ Requires advanced elements ------ //
+    Potion::new(Loveliness, |elements| {
+        elements[Air] = 7;
+        elements[Fire] = 3;
+    }),
+    Potion::new(Flame, |elements| {
+        elements[Fire] = 8;
+        elements[Earth] = 1;
+    }),
     Potion::new(CoughRemedy, |elements| {
         elements[Ice] = 2;
         elements[Thunder] = 2;
@@ -214,11 +244,6 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Ice] = 3;
         elements[Water] = 2;
         elements[Shadow] = 1;
-    }),
-    Potion::new(InsectRepellent, |elements| {
-        elements[Light] = 4;
-        elements[Air] = 3;
-        elements[Fire] = 2;
     }),
     Potion::new(SnakeRepellent, |elements| {
         elements[Ice] = 3;
@@ -241,10 +266,6 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Shadow] = 3;
         elements[Taint] = 1;
     }),
-    Potion::new(Courage, |elements| {
-        elements[Spirit] = 3;
-        elements[Fire] = 2;
-    }),
     Potion::new(Sleep, |elements| {
         elements[Water] = 3;
         elements[Taint] = 2;
@@ -253,25 +274,10 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Taint] = 3;
         elements[Void] = 3;
     }),
-    Potion::new(Intelligence, |elements| {
-        elements[Water] = 5;
-        elements[Spirit] = 4;
-        elements[Fire] = 3;
-    }),
     Potion::new(Strength, |elements| {
         elements[Earth] = 6;
         elements[Thunder] = 2;
         elements[Ice] = 1;
-    }),
-    Potion::new(PlantGrowth, |elements| {
-        elements[Water] = 4;
-        elements[Light] = 4;
-        elements[Earth] = 2;
-        elements[Air] = 2;
-    }),
-    Potion::new(Resillience, |elements| {
-        elements[Earth] = 4;
-        elements[Shadow] = 2;
     }),
     Potion::new(Speed, |elements| {
         elements[Air] = 6;
@@ -281,10 +287,6 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
     Potion::new(Charisma, |elements| {
         elements[Spirit] = 6;
         elements[Void] = 3;
-    }),
-    Potion::new(Perception, |elements| {
-        elements[Light] = 5;
-        elements[Shadow] = 4;
     }),
     Potion::new(Shock, |elements| {
         elements[Light] = 5;

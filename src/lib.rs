@@ -79,9 +79,9 @@ impl World {
     fn list_inventory(&self) -> String {
         let satchel_contents = self.list_satchel();
         if satchel_contents == "" {
-            format!("Empty glass bottles: {}\nSilver pieces: {}", self.empty_bottles, self.money)
+            format!("Unlimited water\nEmpty glass bottles: {}\nSilver pieces: {}", self.empty_bottles, self.money)
         } else {
-            format!("{0}\nEmpty glass bottles: {1}\nSilver pieces: {2}", satchel_contents, self.empty_bottles, self.money)
+            format!("{0}\nUnlimited water\nEmpty glass bottles: {1}\nSilver pieces: {2}", satchel_contents, self.empty_bottles, self.money)
         }
     }
 
@@ -582,6 +582,7 @@ soak [ingredient] - add the ingredient to a bottle for an infusion. Not availabl
 stir - stir the cauldron as it boils, allowing lighter elements to evaporate
 bottle [ingredient] - put the named ingredient into a bottle, or finish and bottle what's brewing in the cauldron
 dump - empty out the cauldron and get rid of the contents
+recipes - check your notes on recipes you've discovered
 
 ==Misc==
 sleep - advances time, allowing herbs to regrow, infusions to infuse, and fresh herbs to dry out
@@ -624,6 +625,7 @@ pub fn step(command: &str) -> String {
             "inv"|"inventory"|"satchel"|"list" => world.list_inventory(),
             "gather"|"forage"|"collect" => world.forage(&params),
             "herb"|"herbs" => world.discoveries.list_herb_locations(),
+            "recipe"|"recipes"|"effects" => world.discoveries.list_recipes(),
             "brew"|"decoct"|"cauldron" => world.decoct_named(&params),
             "soak"|"infuse" => world.infuse_named(&params),
             "bottle" => world.bottle_named(&params),

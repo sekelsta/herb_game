@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 use enum_map::EnumMap;
 
-use crate::{Effect, Element, Herb, Modifier, RegionEnum};
+use crate::{Effect, Element, Herb, Ingredient, Modifier, RegionEnum};
 
 pub const ALCHEMY_BOOK_ONE: &str = "Introduction to Herbal Brews
-Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron in the rare case where you want evaporation to happen faster.
-Which, if any, potion is created depends on how many energies of each element are available in the brew. For instance, a combination of air and earth without too much fire is good for healing, as written by Guldin Schatzkarmmer in 1598. A little fire may not ruin the work, but will make the effect weaker. If some elements are missing, it may still be possible to create an effect, but only a weak one. I recommend experimenting with combinations of several herbs to see what effects you can discover.
-Oh, and be aware, making powerful potions often requires several of the same element, yet taking that too far can have ...exciting... results. Be sure to set up your workspace outside and in an area cleared of flammable materials.";
+Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron in the rare case where you want evaporation to happen faster. If you want to take a pause, you can bottle your mixture and add it back later.
+Which, if any, potion is created depends on how many energies of each element are available in the brew. For instance, a combination of air and earth without too much fire is good for healing, as written by Guldin Schatzkarmmer in 1598. The potion will be weaker if the elements available are not quite the right ones. I recommend experimenting with combinations of several herbs to see what effects you can discover.
+Oh, and be aware, making powerful potions often requires a great deal of elemental energies, yet taking that too far can have ...exciting... results. Be sure to set up your workspace outside and in an area cleared of flammable materials.";
 
 pub const ALCHEMY_BOOK_TWO: &str = "Experiments on Concentrated Earth
 Trial 1: Start with an empty cauldron. Add water and bring it to a boil. Then add three dandelions, one at a time. Notice a change in the texture of the brew as elemental earth is extracted. Add a fourth dandelion and quickly dump the mixture. Watch as it solidifies into rock.
@@ -25,6 +25,7 @@ That's about all you need to know to get started. I encourage you to experiment 
 pub struct KnowledgeState {
     pub herb_tier: i32,
     pub effects: EnumMap<Effect, bool>,
+    recipes: EnumMap<Effect, Vec<(f32, Ingredient)>>,
     pub herb_locations: HashMap<&'static str, HashSet<RegionEnum>>,
     pub herbs_gathered: u32,
     pub known_elements: HashMap<&'static str, EnumMap<Element, EnumMap<Modifier, bool>>>,
@@ -41,6 +42,7 @@ impl KnowledgeState {
         KnowledgeState {
             herb_tier: 0,
             effects: EnumMap::default(),
+            recipes: EnumMap::default(),
             herb_locations: HashMap::new(),
             herbs_gathered: 0,
             known_elements: HashMap::new(),
@@ -55,6 +57,20 @@ impl KnowledgeState {
     pub fn mark_herb_found(&mut self, herb: &Herb, region: RegionEnum) {
         let set = self.herb_locations.entry(herb.name).or_insert(HashSet::default());
         set.insert(region);
+    }
+
+    pub fn mark_recipe(&mut self, ingredient: &Ingredient) {
+        if let Some(effect) = ingredient.effect {
+            self.effects[effect] = true;
+            for (strength, recipe) in &self.recipes[effect] {
+                if *recipe == *ingredient {
+                    return;
+                }
+            }
+            self.recipes[effect].push((ingredient.strength, ingredient.clone()));
+            // Sort descending
+            self.recipes[effect].sort_by(|(strength_a, _), (strength_b, _)| strength_b.total_cmp(strength_a));
+        }
     }
 
     pub fn count_effects(&self) -> usize {
@@ -130,6 +146,10 @@ impl KnowledgeState {
             return "You haven't collected any herbs yet, but you spotted some you recognized in the overgrown farm field north of town.".to_string();
         }
         self.herb_locations.iter().map(|(herb, locations)| format!("{}: {}", herb, locations.iter().map(|x| x.to_title_case().to_ascii_lowercase()).collect::<Vec<String>>().join(", "))).collect::<Vec<String>>().join("\n")
+    }
+
+    pub fn list_recipes(&self) -> String {
+        self.recipes.values().flatten().map(|(_, i)| i.show_in_progress(self)).collect::<Vec<String>>().join("\n")
     }
 
     pub fn book(&self) -> String {

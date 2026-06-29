@@ -37,7 +37,7 @@ pub enum Modifier {
     //Split,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Solvent {
     Air,
     Water,
@@ -58,7 +58,7 @@ impl Solvent {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Container {
     Bottle,
     None,
@@ -73,7 +73,7 @@ impl Container {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum IngredientKind {
     BaseSolvent,
     Herb { name: &'static str },
@@ -83,7 +83,7 @@ pub enum IngredientKind {
     Rot,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Ingredient {
     pub kind: IngredientKind,
     pub solvent: Solvent,
@@ -451,9 +451,7 @@ impl Ingredient {
                 self.effect = Some(potion.effect);
             }
         }
-        if let Some(effect) = self.effect {
-            discoveries.effects[effect] = true;
-        }
+        discoveries.mark_recipe(self);
     }
 
     pub fn advance_time(&mut self) -> Option<String> {
