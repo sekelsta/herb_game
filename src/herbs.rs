@@ -163,7 +163,7 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
             (Light, Provide, 2),
             (Earth, Provide, 1),
         ]),
-        biomes: vec!(Garden, Village, FriendlyForest),
+        biomes: vec!(Garden, FriendlyForest, PineForest),
     },
     Herb {
         name: "lawn daisy",
@@ -257,6 +257,30 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         biomes: vec!(MeadowRiver, WildflowerMeadow),
     },
     Herb {
+        name: "jewelweed",
+        tier: 3,
+        toxicity: 0.1,
+        elements: map_elements(&[
+            (Ice, Provide, 2),
+            (Mana, Provide, 2),
+            (Air, Stabilize, 3),
+            (Thunder, Stabilize, -1),
+        ]),
+        biomes: vec!(ForestRiver),
+    },
+    Herb {
+        name: "wintergreen",
+        tier: 3,
+        toxicity: 0.0,
+        elements: map_elements(&[
+            (Ice, Provide, 4),
+            (Earth, Provide, 2),
+            (Earth, Stabilize, 2),
+        ]),
+        biomes: vec!(PineForest),
+    },
+// ------ Tier 3 herbs ------ //
+    Herb {
         name: "fox sedge",
         tier: 2,
         toxicity: 0.0,
@@ -279,7 +303,6 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         ]),
         biomes: vec!(ForestRiver),
     },
-// ------ Tier 3 herbs ------ //
     Herb {
         name: "jack-in-the-pulpit",
         tier: 3,
@@ -321,18 +344,6 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         biomes: vec!(Garden, Village),
     },
     Herb {
-        name: "jewelweed",
-        tier: 3,
-        toxicity: 0.1,
-        elements: map_elements(&[
-            (Ice, Provide, 2),
-            (Mana, Provide, 2),
-            (Air, Stabilize, 3),
-            (Thunder, Stabilize, -1),
-        ]),
-        biomes: vec!(ForestRiver),
-    },
-    Herb {
         name: "skunk cabbage",
         tier: 3,
         toxicity: 0.6,
@@ -347,21 +358,9 @@ pub static REFERENCE_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         ]),
         biomes: vec!(ForestRiver),
     },
-    Herb {
-        name: "wintergreen",
-        tier: 3,
-        toxicity: 0.0,
-        elements: map_elements(&[
-            (Ice, Provide, 4),
-            (Earth, Provide, 2),
-            (Earth, Stabilize, 2),
-        ]),
-        biomes: vec!(PineForest),
-    },
 ));
 
 pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
-// ------ Tier 1 herbs ------ //
 // ------ Tier 2 herbs ------ //
     Herb {
         name: "watercress",
@@ -516,7 +515,7 @@ pub static TODO_HERBS: Lazy<Vec<Herb>> = Lazy::new(|| vec!(
         toxicity: 0.0,
         elements: map_elements(&[
         ]),
-        biomes: vec!(Field),
+        biomes: vec!(Field, Village),
     },
     Herb {
         name: "milkweed",

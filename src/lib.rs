@@ -89,7 +89,7 @@ impl World {
         self.satchel.iter().map(|i| i.inventory_view(&self.discoveries)).collect::<Vec<String>>().join("\n")
     }
 
-    fn forage(&mut self, params: &str) -> String {
+    fn forage(&mut self, count: i32) -> String {
         if REFERENCE_HERBS.iter().all(|h| !h.biomes.contains(&self.current_region)) {
             return "Nothing grows here.".to_string();
         }
@@ -97,24 +97,26 @@ impl World {
         if available.len() == 0 {
             return "The area is picked clean.".to_string();
         }
-        if params != "" && REFERENCE_HERBS.iter().find(|h| h.name == params).map_or(false, |h| h.tier > self.discoveries.herb_tier) {
-            return format!("You don't know what '{}' looks like.", params);
-        }
         if available.iter().all(|h| h.tier > self.discoveries.herb_tier) {
             return "You don't recognize any herbs here.".to_string();
         }
-        let pos = available.iter().position(|h| h.name == params).or(Some(0)).unwrap();
-        let found = available.remove(pos);
+        let found = available.remove(0);
         if found.tier > self.discoveries.herb_tier {
             // Return it to the back.
             available.push(found);
-            return "You don't recognize this plant. You leave it be and keep looking.".to_string();
+            if count <= 1 {
+                return "You don't recognize this plant. You leave it be and keep looking.".to_string();
+            }
+            return format!("You don't recognize this plant. You leave it be and keep looking.\n{}", self.forage(count - 1));
         }
         let result = format!("You collected {}.", found.name);
         self.discoveries.mark_herb_found(found, self.current_region);
         self.discoveries.herbs_gathered += 1;
         self.satchel.push(found.to_ingredient());
-        result        
+        if count <= 1 {
+            return result;
+        }
+        format!("{}\n{}", result, self.forage(count - 1))
     }
 
     fn take_ingredient(&mut self, params: &str, filter: impl Fn(&Ingredient) -> bool) -> Result<Ingredient, String> {
@@ -632,7 +634,7 @@ pub fn step(command: &str) -> String {
             "go"|"travel"|"to"|"the" => step(&params),
             "wait"|"advance"|"sleep" => world.advance_time(),
             "inv"|"inventory"|"satchel"|"list" => world.list_inventory(),
-            "gather"|"forage"|"collect" => world.forage(&params),
+            "gather"|"forage"|"collect" => world.forage(rand::rng().random_range(1..4)),
             "herb"|"herbs" => world.discoveries.list_herb_locations(),
             "recipe"|"recipes"|"effects" => world.discoveries.list_recipes(),
             "brew"|"decoct"|"cauldron" => world.decoct_named(&params),
