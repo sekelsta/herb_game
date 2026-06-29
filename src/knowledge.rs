@@ -20,7 +20,6 @@ For a stronger infusion, you can add another herb the next day. You can also inf
 
 pub struct KnowledgeState {
     pub herb_tier: i32,
-    pub effects: EnumMap<Effect, bool>,
     recipes: EnumMap<Effect, Vec<(f32, Ingredient)>>,
     pub herb_locations: HashMap<&'static str, HashSet<RegionEnum>>,
     pub herbs_gathered: u32,
@@ -37,7 +36,6 @@ impl KnowledgeState {
     pub fn new() -> Self {
         KnowledgeState {
             herb_tier: 0,
-            effects: EnumMap::default(),
             recipes: EnumMap::default(),
             herb_locations: HashMap::new(),
             herbs_gathered: 0,
@@ -57,7 +55,6 @@ impl KnowledgeState {
 
     pub fn mark_recipe(&mut self, ingredient: &Ingredient) {
         if let Some(effect) = ingredient.effect {
-            self.effects[effect] = true;
             for (_strength, recipe) in &self.recipes[effect] {
                 if *recipe == *ingredient {
                     return;
@@ -70,7 +67,7 @@ impl KnowledgeState {
     }
 
     pub fn count_effects(&self) -> usize {
-        self.effects.values().filter(|x| **x).count()
+        self.recipes.values().filter(|x| x.len() > 0).count()
     }
 
     pub fn spirits_unlocked(&self) -> bool {
