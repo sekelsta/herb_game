@@ -62,7 +62,7 @@ impl KnowledgeState {
     pub fn mark_recipe(&mut self, ingredient: &Ingredient) {
         if let Some(effect) = ingredient.effect {
             self.effects[effect] = true;
-            for (strength, recipe) in &self.recipes[effect] {
+            for (_strength, recipe) in &self.recipes[effect] {
                 if *recipe == *ingredient {
                     return;
                 }

@@ -402,17 +402,17 @@ impl World {
             messages.push(Element::Light.unstable_message().to_string());
         }
         if brew.is_unstable(Element::Thunder) {
-            for (_element, mut status) in brew.elements {
+            for (element, status) in brew.elements {
                 for (modifier, _amount) in status {
-                    status[modifier] *= 3 / 4;
+                    brew.elements[element][modifier] = status[modifier] * 3 / 4;
                 }
             }
             messages.push(Element::Thunder.unstable_message().to_string());
         }
         if brew.is_unstable(Element::Air) {
-            for (_element, mut status) in brew.elements {
+            for (element, status) in brew.elements {
                 for (modifier, _amount) in status {
-                    status[modifier] /= 2;
+                    brew.elements[element][modifier] /= 2;
                 }
             }
             messages.push(Element::Air.unstable_message().to_string());
@@ -422,11 +422,12 @@ impl World {
                 messages.push(element.warning().to_string());
             }
         }
+        brew.update_effect(&mut self.discoveries);
 
         if messages.is_empty() {
             None
         } else {
-            Some(messages.join("\n"))
+            Some(format!("{}\n{}", messages.join("\n"), brew.show_in_progress(&self.discoveries)))
         }
     }
 
