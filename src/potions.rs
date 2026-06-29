@@ -38,6 +38,12 @@ pub enum Effect {
     Shine,
     Poison,
     Darkness,
+    Butterflies,
+    Fireflies,
+    Invisibility,
+    Feysight,
+    Alertness,
+    Sparkles,
 }
 
 impl Effect {
@@ -57,9 +63,9 @@ impl Effect {
 
     pub fn sale_value(&self) -> i32 {
         match self {
-            HealthBoost => 4,
-            CoughRemedy => 5,
-            FeverReducer => 6,
+            HealthBoost => 6,
+            CoughRemedy => 8,
+            FeverReducer => 8,
             InsectRepellent => 7,
             SnakeRepellent => 8,
             CharmProtection => 9,
@@ -88,6 +94,12 @@ impl Effect {
             Shine => 15,
             Poison => 13,
             Darkness => 28,
+            Butterflies => 32,
+            Fireflies => 30,
+            Sparkles => 4,
+            Invisibility => 36,
+            Feysight => 12,
+            Alertness => 5,
         }
     }
 
@@ -101,11 +113,13 @@ impl Effect {
             Perception => "potion of seeing".to_string(),
             WoundHealing => "salve of healing".to_string(),
             Freeze => "potion of ice".to_string(),
+            Shine => "liquid starshine".to_string(),
+            Sparkles => "sparkling potion".to_string(),
             CoughRemedy | FeverReducer | InsectRepellent | SnakeRepellent | Charisma | Shock | Lightning | Poison | Darkness | Flame =>
                 self.to_title_case().to_ascii_lowercase(),
-            Patience | Rage | Fear | Courage | Resillience | Cleanliness | PlantGrowth =>
+            Patience | Rage | Fear | Courage | Resillience | Cleanliness | PlantGrowth | Butterflies | Fireflies | Feysight | Alertness =>
                 format!("potion of {}", self.to_title_case().to_ascii_lowercase()),
-            Love | Strength | Intelligence | Shine =>
+            Love | Strength | Intelligence | Invisibility =>
                 format!("{} potion", self.to_title_case().to_ascii_lowercase()),
             Sleep =>
                 format!("{} draught", self.to_title_case().to_ascii_lowercase()),
@@ -181,6 +195,10 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Earth] = 5;
         elements[Water] = 3;
     }),
+    Potion::new(Alertness, |elements| {
+        elements[Fire] = 3;
+        elements[Earth] = 2;
+    }),
     // ------ Tier 1 ------ //
     Potion::new(Sleep, |elements| {
         elements[Water] = 3;
@@ -194,6 +212,11 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Light] = 3;
         elements[Ice] = 1;
         elements[Thunder] = 1;
+    }),
+    Potion::new(Sparkles, |elements| {
+        elements[Light] = 3;
+        elements[Fire] = 1;
+        elements[Air] = 1;
     }),
     Potion::new(CharmProtection, |elements| {
         elements[Fire] = 4;
@@ -239,10 +262,32 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Taint] = 1;
         elements[Thunder] = 1;
     }),
+    Potion::new(Invisibility, |elements| {
+        elements[Shadow] = 8;
+        elements[Air] = 4;
+        elements[Light] = 3;
+        elements[Mana] = 2;
+    }),
     // ------ Requires advanced elements ------ //
+    Potion::new(Feysight, |elements| {
+        elements[Mana] = 4;
+        elements[Light] = 2;
+        elements[Air] = 2;
+        elements[Shadow] = 1;
+    }),
     Potion::new(Shine, |elements| {
         elements[Light] = 4;
         elements[Mana] = 2;
+    }),
+    Potion::new(Butterflies, |elements| {
+        elements[Mana] = 6;
+        elements[Air] = 5;
+        elements[Light] = 2;
+    }),
+    Potion::new(Fireflies, |elements| {
+        elements[Mana] = 6;
+        elements[Light] = 5;
+        elements[Air] = 2;
     }),
     Potion::new(Loveliness, |elements| {
         elements[Air] = 7;

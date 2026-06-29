@@ -588,7 +588,7 @@ look - describe your current location, including cauldron contents
 map - display a map of the area
 
 ==Foraging==
-gather or forage - search for herbs in your current region, with priority for a specific herb if you name one
+gather or forage - search for herbs in your current region
 inv or satchel - list items inside your satchel
 herbs - lists where you've found each herb before
 
