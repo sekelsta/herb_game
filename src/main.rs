@@ -32,8 +32,11 @@ fn main() -> io::Result<()> {
 
         let result = step(&line);
         println!("{result}");
+
+
+        let mut output = std::fs::File::create(path)?;
+        write!(output, "{}", save_to_json())?;
     }
 
-    let mut output = std::fs::File::create(path)?;
-    write!(output, "{}", save_to_json())
+    Ok(())
 }
