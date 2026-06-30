@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use enum_map::EnumMap;
 use rand::RngExt;
 use serde::{Serialize, Deserialize};
@@ -72,7 +73,12 @@ impl World {
     }
 
     fn list_satchel(&self) -> String {
-        self.satchel.iter().map(|i| i.inventory_view(&self.discoveries)).collect::<Vec<String>>().join("\n")
+        let mut btree = BTreeMap::new();
+        for item in &self.satchel {
+            let description = item.inventory_view(&self.discoveries);
+            btree.entry(description).and_modify(|c| *c += 1).or_insert(1);
+        }
+        btree.iter().map(|(k, v)| format!("{}x {}", v, k)).collect::<Vec<String>>().join("\n")
     }
 
     pub fn forage(&mut self, count: i32) -> String {
