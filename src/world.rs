@@ -440,8 +440,8 @@ impl World {
             return "There's no one here to buy from.".to_string()
         }
         let bottle_price = 2;
-        let spirits_price = 8;
-        let oil_price = 24;
+        let spirits_price = 6;
+        let oil_price = 4;
         match params {
             "bottle"|"b"|"" => {
                 if self.money < bottle_price {
@@ -460,6 +460,7 @@ impl World {
                 }
                 self.money -= spirits_price;
                 self.satchel.push(ETHER.clone());
+                self.bottles_sold -= 1;
                 "You bought spirits.".to_string()
             }
             "oil" => {
@@ -471,6 +472,7 @@ impl World {
                 }
                 self.money -= oil_price;
                 self.satchel.push(OIL.clone());
+                self.bottles_sold -= 1;
                 "You bought oil.".to_string()
             }
             _ => format!("The village doesn't sell '{}'", params)
@@ -519,7 +521,8 @@ impl World {
         self.satchel.append(&mut self.infusion_shelf);
         // Customers return bottles
         let prev_bottles = self.empty_bottles;
-        for _i in 0..self.bottles_sold {
+        let returnable_bottles = self.bottles_sold.max(0);
+        for _i in 0..returnable_bottles {
             if rand::random_bool(0.5) {
                 self.empty_bottles += 1;
                 self.bottles_sold -= 1;
