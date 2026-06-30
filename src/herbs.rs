@@ -1,7 +1,7 @@
 use enum_map::{enum_map, Enum, EnumMap};
 use once_cell::sync::Lazy;
 use serde::{Serialize, Deserialize};
-use strum_macros::{Display, IntoStaticStr};
+use strum_macros::IntoStaticStr;
 
 use crate::{Container, Element, Ingredient, IngredientKind, Modifier, RegionEnum, Solvent};
 use crate::Element::*;
@@ -10,7 +10,7 @@ use crate::RegionEnum::*;
 
 use Plant::*;
 
-#[derive(Clone, Copy, Debug, Display, IntoStaticStr, Enum, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, IntoStaticStr, Enum, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum Plant {
     Dandelion,
     WhiteClover,
@@ -80,6 +80,14 @@ impl Plant {
             DeadlyNightshade => "deadly nightshade",
             PettySpurge => "petty spurge",
             e => e.into(),
+        }
+    }
+
+    pub fn to_lowercase_string(&self) -> String {
+        match self {
+            // Keep Jack capitalized
+            JackInThePulpit => self.to_static_str().to_string(),
+            _ => self.to_static_str().to_ascii_lowercase(),
         }
     }
 

@@ -95,7 +95,7 @@ impl World {
             }
             return format!("You don't recognize this plant. You leave it be and keep looking.\n{}", self.forage(count - 1));
         }
-        let result = format!("You collected {}.", found.to_string());
+        let result = format!("You collected {}.", found.to_lowercase_string());
         self.discoveries.mark_herb_found(found, self.current_region);
         self.discoveries.herbs_gathered += 1;
         self.satchel.push(found.to_ingredient());
@@ -116,19 +116,19 @@ impl World {
             };
             return Err("Specify an ingredient".to_string())
         }
-        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.full_name().as_str())) {
+        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.full_name().to_ascii_lowercase().as_str())) {
             return Ok(self.satchel.remove(pos));
         }
-        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.brew_name().as_str())) {
+        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.brew_name().to_ascii_lowercase().as_str())) {
             return Ok(self.satchel.remove(pos));
         }
-        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.base_name().as_str())) {
+        if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.base_name().to_ascii_lowercase().as_str())) {
             return Ok(self.satchel.remove(pos));
         }
         if let Some(pos) = UNLIMITED_INGREDIENTS.iter().position(|x| x.matches_name(params)) {
             return Ok(UNLIMITED_INGREDIENTS[pos].clone());
         }
-        if let Some(_pos) = self.infusion_shelf.iter().position(|x| x.full_name() == params) {
+        if let Some(_pos) = self.infusion_shelf.iter().position(|x| x.full_name().to_ascii_lowercase() == params) {
             return Err("Wait for that to finish infusing first.".to_string())
         }
         Err(format!("You have no such ingredient: {}", params))
@@ -291,7 +291,10 @@ impl World {
         };
         let addition = match self.take_ingredient(remainder, |_| true) {
             Ok(ingredient) => ingredient,
-            Err(result) => return result,
+            Err(result) => {
+                self.satchel.push(base);
+                return result;
+            }
         };
         self.infuse(base, addition)
     }
@@ -303,6 +306,7 @@ impl World {
                 match addition.infusion_kind(&base) {
                     Ok(_) => return self.infuse(addition, base),
                     Err(_) => {
+                        // TODO: Only give these back if they are not unlimited ingredients (water)
                         self.satchel.push(base);
                         self.satchel.push(addition);
                         return message;

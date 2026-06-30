@@ -106,7 +106,7 @@ impl Ingredient {
         }
         match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
-            IngredientKind::Herb { species } => species.to_string(),
+            IngredientKind::Herb { species } => species.to_lowercase_string(),
             IngredientKind::Infusion { names } | IngredientKind::Decoction { names } => names.join(", "),
             IngredientKind::Mixture => "concoction".to_string(),
             IngredientKind::Rot => "rot".to_string(),
@@ -120,11 +120,11 @@ impl Ingredient {
         match &self.kind {
             IngredientKind::BaseSolvent => self.solvent.name().to_string(),
             IngredientKind::Herb { species } => match self.solvent {
-                Solvent::Air => format!("dry {}", species.to_string()),
-                Solvent::Water => format!("aqueous {}", species.to_string()),
-                Solvent::Ether => format!("spirit of {}", species.to_string()),
-                Solvent::Oil => format!("{} oil", species.to_string()),
-                Solvent::Vivo => format!("fresh {}", species.to_string()),
+                Solvent::Air => format!("dry {}", species.to_lowercase_string()),
+                Solvent::Water => format!("aqueous {}", species.to_lowercase_string()),
+                Solvent::Ether => format!("spirit of {}", species.to_lowercase_string()),
+                Solvent::Oil => format!("{} oil", species.to_lowercase_string()),
+                Solvent::Vivo => format!("fresh {}", species.to_lowercase_string()),
             },
             IngredientKind::Infusion { names } => match self.solvent {
                 Solvent::Air => format!("dried infusion of {}", names.join(", ")),
@@ -236,7 +236,7 @@ impl Ingredient {
     }
 
     pub fn matches_name(&self, needle: &str) -> bool {
-        needle.starts_with(self.full_name().as_str()) || needle.starts_with(self.brew_name().as_str()) || needle.starts_with(self.base_name().as_str())
+        needle.starts_with(self.full_name().to_ascii_lowercase().as_str()) || needle.starts_with(self.brew_name().to_ascii_lowercase().as_str()) || needle.starts_with(self.base_name().to_ascii_lowercase().as_str())
     }
 
     pub fn search_remainder<'a>(&self, needle: &'a str) -> Option<&'a str> {
@@ -323,13 +323,13 @@ impl Ingredient {
     pub fn decoct(&mut self, addition: &Ingredient, discoveries: &mut KnowledgeState) -> String {
         let boil_text = self.boil(discoveries);
         match (&mut self.kind, &addition.kind) {
-            (IngredientKind::BaseSolvent, IngredientKind::Herb { species }) => self.kind = IngredientKind::Decoction { names: vec!(species.to_string()) },
-            (IngredientKind::Decoction { names }, IngredientKind::Herb { species }) => names.push(species.to_string()),
+            (IngredientKind::BaseSolvent, IngredientKind::Herb { species }) => self.kind = IngredientKind::Decoction { names: vec!(species.to_lowercase_string()) },
+            (IngredientKind::Decoction { names }, IngredientKind::Herb { species }) => names.push(species.to_lowercase_string()),
             (IngredientKind::Decoction { names: base_names }, IngredientKind::Decoction { names: addition_names }) => base_names.append(&mut addition_names.clone()),
             _ => self.kind = IngredientKind::Mixture,
         };
         self.apply(addition, discoveries);
-        format!("{}\n{}", boil_text, self.show_in_progress(discoveries))
+        format!("{} You add your {}.\n{}", boil_text, addition.brew_name(), self.show_in_progress(discoveries))
     }
 
     pub fn infusion_kind(&self, addition: &Ingredient) -> Result<IngredientKind, String> {
@@ -344,14 +344,14 @@ impl Ingredient {
 
         Ok(match &self.kind {
             IngredientKind::BaseSolvent => match addition.kind {
-                IngredientKind::Herb { species } => IngredientKind::Infusion { names: vec!(species.to_string()) },
+                IngredientKind::Herb { species } => IngredientKind::Infusion { names: vec!(species.to_lowercase_string()) },
                 IngredientKind::Rot => IngredientKind::Infusion { names: vec!(addition.base_name()) },
                 _ => IngredientKind::Mixture,
             },
             IngredientKind::Infusion { names } => match addition.kind {
                 IngredientKind::Herb { species } => {
                     let mut names = names.clone();
-                    names.push(species.to_string());
+                    names.push(species.to_lowercase_string());
                     IngredientKind::Infusion { names }
                 },
                 IngredientKind::Rot => {

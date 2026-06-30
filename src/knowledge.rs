@@ -140,7 +140,7 @@ impl KnowledgeState {
         if self.herb_locations.is_empty() {
             return "You haven't collected any herbs yet, but you spotted some you recognized in the overgrown farm field north of town.".to_string();
         }
-        self.herb_locations.iter().map(|(herb, locations)| format!("{}: {}", herb, locations.iter().map(|x| x.to_title_case().to_ascii_lowercase()).collect::<Vec<String>>().join(", "))).collect::<Vec<String>>().join("\n")
+        self.herb_locations.iter().map(|(herb, locations)| format!("{}: {}", herb.to_lowercase_string(), locations.iter().map(|x| x.to_title_case().to_ascii_lowercase()).collect::<Vec<String>>().join(", "))).collect::<Vec<String>>().join("\n")
     }
 
     pub fn list_recipes(&self) -> String {
