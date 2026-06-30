@@ -133,7 +133,7 @@ impl Region {
             },
             Garden => Region {
                 name: "Your Garden",
-                description: "Needs some work. You decide you'd rather keep foraging from the wild.\nA few herbs have survived from better-tended times, with occasional weeds sprouting around them.\nYour home just east of here. To the south is a shady, open forest, and north of here lies the village.",
+                description: "Needs some work. You decide you'd rather keep foraging from the wild.\nA few herbs have survived from better-tended times, with occasional weeds sprouting around them.\nYour home is just east of here. To the south is a shady, open forest, and north of here lies the village.",
                 routes: enum_map!(
                     East => Hut,
                     Northwest => PineForest,
