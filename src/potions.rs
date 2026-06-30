@@ -27,7 +27,7 @@ pub enum Effect {
     Intelligence,
     Strength,
     Patience,
-    Resillience,
+    Resilience,
     Speed,
     Charisma,
     Perception,
@@ -83,7 +83,7 @@ impl Effect {
             Intelligence => 16,
             Strength => 14,
             Patience => 12,
-            Resillience => 15,
+            Resilience => 15,
             Speed => 14,
             Charisma => 18,
             Perception => 15,
@@ -119,7 +119,7 @@ impl Effect {
             Sparkles => "sparkling potion".to_string(),
             CoughRemedy | FeverReducer | InsectRepellent | SnakeRepellent | Charisma | Shock | Lightning | Poison | Darkness | Flame =>
                 self.to_title_case().to_ascii_lowercase(),
-            Patience | Rage | Fear | Courage | Resillience | Cleanliness | PlantGrowth | Butterflies | Fireflies | Feysight | Alertness =>
+            Patience | Rage | Fear | Courage | Resilience | Cleanliness | PlantGrowth | Butterflies | Fireflies | Feysight | Alertness =>
                 format!("potion of {}", self.to_title_case().to_ascii_lowercase()),
             Love | Strength | Intelligence | Invisibility =>
                 format!("{} potion", self.to_title_case().to_ascii_lowercase()),
@@ -158,10 +158,6 @@ impl Potion {
         let mut ratio: f32 = 10.0; // Max strength before being more concentrated starts counting against you even in the correct ratio
         for (element, required) in self.elements {
             let provided = work.elements[element][Modifier::Provide];
-            // Allow up to one of each element to be missing - commented out to see if getting rid of this helps
-            //if required > provided + 1 {
-                //return 0.0;
-            //}
             ref_total += required;
             correct_total += required.min(provided);
             incorrect_total += (required - provided).abs();
@@ -247,7 +243,7 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Earth] = 2;
         elements[Air] = 2;
     }),
-    Potion::new(Resillience, |elements| {
+    Potion::new(Resilience, |elements| {
         elements[Earth] = 4;
         elements[Shadow] = 2;
     }),

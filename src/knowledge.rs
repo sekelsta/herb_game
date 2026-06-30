@@ -22,7 +22,7 @@ For a stronger infusion, you can add another herb the next day. You can also inf
 #[derive(Serialize, Deserialize)]
 pub struct KnowledgeState {
     pub herb_tier: i32,
-    recipes: EnumMap<Effect, Vec<(f32, Ingredient)>>,
+    recipes: EnumMap<Effect, Vec<(f32, EnumMap<Element, i32>)>>,
     pub herb_locations: HashMap<Plant, HashSet<RegionEnum>>,
     pub herbs_gathered: u32,
     pub known_elements: HashMap<Plant, EnumMap<Element, EnumMap<Modifier, bool>>>,
@@ -57,12 +57,16 @@ impl KnowledgeState {
 
     pub fn mark_recipe(&mut self, ingredient: &Ingredient) {
         if let Some(effect) = ingredient.effect {
+            let mut elements = EnumMap::default();
+            for (element, modifiers) in &ingredient.elements {
+                elements[element] = modifiers[Modifier::Provide];
+            }
             for (_strength, recipe) in &self.recipes[effect] {
-                if *recipe == *ingredient {
+                if *recipe == elements {
                     return;
                 }
             }
-            self.recipes[effect].push((ingredient.strength, ingredient.clone()));
+            self.recipes[effect].push((ingredient.strength, elements));
             // Sort descending
             self.recipes[effect].sort_by(|(strength_a, _), (strength_b, _)| strength_b.total_cmp(strength_a));
         }
@@ -144,7 +148,14 @@ impl KnowledgeState {
     }
 
     pub fn list_recipes(&self) -> String {
-        self.recipes.values().flatten().map(|(_, i)| i.show_in_progress(self)).collect::<Vec<String>>().join("\n")
+        let mut all_recipes = Vec::new();
+        for (effect, potions) in &self.recipes {
+            for (strength, elements) in potions {
+                let data = elements.iter().filter(|(e, x)| **x != 0).map(|(e, x)| format!("{} {:?}", x, e)).collect::<Vec<String>>().join(", ");
+                all_recipes.push(format!("{} ({}% strength): {}", effect.to_title_case(), (strength * 100.0).round() as i32, data));
+            }
+        }
+        all_recipes.join("\n")
     }
 
     pub fn book(&self) -> String {
