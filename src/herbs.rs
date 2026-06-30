@@ -527,7 +527,7 @@ pub static REFERENCE_HERBS: Lazy<EnumMap<Plant, Herb>> = Lazy::new(|| enum_map!(
         ]),
         biomes: vec!(Garden, FriendlyForest),
     },
-    // TODO
+    // TODO: Herbs beyond this point have not had elements double-checked
     BittersweetNightshade => Herb {
         tier: 3,
         toxicity: 0.3,
@@ -585,7 +585,9 @@ pub static REFERENCE_HERBS: Lazy<EnumMap<Plant, Herb>> = Lazy::new(|| enum_map!(
         tier: 3,
         toxicity: 0.0,
         elements: map_elements(&[
-            // TODO
+            (Mana, Provide, 1),
+            (Earth, Strengthen, 1),
+            (Water, Stabilize, 2),
         ]),
         biomes: vec!(Field),
     },
@@ -593,8 +595,12 @@ pub static REFERENCE_HERBS: Lazy<EnumMap<Plant, Herb>> = Lazy::new(|| enum_map!(
         tier: 3,
         toxicity: 0.1,
         elements: map_elements(&[
+            (Light, Provide, 1),
+            (Water, Provide, 1),
+            (Earth, Provide, 1),
             (Ice, Strengthen, 2),
-            // TODO
+            (Fire, Stabilize, 1),
+            (Mana, Stabilize, 1),
         ]),
         biomes: vec!(WildflowerMeadow),
     },
