@@ -3,6 +3,8 @@ use enum_map::EnumMap;
 use serde::{Serialize, Deserialize};
 
 use crate::{Effect, Element, Plant, Ingredient, Modifier, RegionEnum};
+use crate::potions::REFERENCE_POTIONS;
+use crate::herbs::REFERENCE_HERBS;
 
 pub const ALCHEMY_BOOK_ONE: &str = "Introduction to Herbal Brews
 Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron in the rare case where you want evaporation to happen faster. If you want to take a pause, you can bottle your mixture and add it back later.
@@ -43,7 +45,7 @@ impl KnowledgeState {
             herbs_gathered: 0,
             known_elements: HashMap::new(),
 
-            max_tier: 3,
+            max_tier: 4,
             next_effects: 3,
             next_species: 5,
             next_gathered: 12,
@@ -109,13 +111,21 @@ impl KnowledgeState {
                 Some("You had a dream about studying plants with your grandma. In the morning, you find a note that definitely wasn't there before. Type 'note' to read it.".to_string())
             },
             2 => {
+                // TODO: Consider requiring a certain level of potion strength as well
                 self.next_effects = 10;
                 self.next_species = 15;
                 self.next_gathered = 36;
                 Some("You feel comfortable with your cauldron and ready to read about new methods. Type 'infusions' to see what the library has on it. You've also learned to recognize new herbs.".to_string())
             },
+            3 => {
+                self.next_effects = REFERENCE_POTIONS.len();
+                self.next_species = REFERENCE_HERBS.len();
+                self.next_gathered = 100;
+                // TODO: Distillation here
+                Some("You've learned to recognize new plant species!".to_string())
+            },
             // Max level
-            x if x >= self.max_tier => Some("You've learned to recognize new plant species!".to_string()),
+            x if x >= self.max_tier => None,
             // Shouldn't happen, but don't crash if it does
             _ => Some("Bug the developer to fix herb tiers.".to_string()),
         }
@@ -151,7 +161,7 @@ impl KnowledgeState {
         let mut all_recipes = Vec::new();
         for (effect, potions) in &self.recipes {
             for (strength, elements) in potions {
-                let data = elements.iter().filter(|(e, x)| **x != 0).map(|(e, x)| format!("{} {:?}", x, e)).collect::<Vec<String>>().join(", ");
+                let data = elements.iter().filter(|(_e, x)| **x != 0).map(|(e, x)| format!("{} {:?}", x, e)).collect::<Vec<String>>().join(", ");
                 all_recipes.push(format!("{} ({}% strength): {}", effect.to_title_case(), (strength * 100.0).round() as i32, data));
             }
         }
