@@ -429,7 +429,7 @@ impl Ingredient {
                     Modifier::Provide => self.elements[element][Modifier::Provide] += amount,
                 }
                 if before != self.elements[element][modifier] && (discoveries.stability_known() || modifier != Modifier::Stabilize)
-                        || (modifier == Modifier::Strengthen && power > 0 && before != 0) {
+                        || (modifier == Modifier::Strengthen && power > 0 && ingredient.elements[element][Modifier::Strengthen] != 0) {
                     match ingredient.kind {
                         IngredientKind::Herb { species } => {
                             let map = discoveries.known_elements.entry(species).or_insert(EnumMap::default());
