@@ -1,5 +1,7 @@
+#![feature(once_cell_get_mut)]
 use std::str::FromStr;
 use rand::RngExt;
+use std::sync::{OnceLock, RwLock};
 use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 
@@ -19,8 +21,7 @@ use crate::knowledge::*;
 use crate::herbs::*;
 use crate::world::World;
 
-static mut WORLD: Lazy<World> = Lazy::new(World::new);
-
+static WORLD: RwLock<OnceLock<World>> = RwLock::new(OnceLock::new());
 
 fn help() -> String {
 "==Navigation==
@@ -62,61 +63,56 @@ pub fn welcome_on_load() -> String {
 
 #[wasm_bindgen]
 pub fn step(command: &str) -> String {
-    // Not safe for multiple threads, but the program is already constrained to single-threaded for browser compatibility
-    unsafe {
-        let world = &mut *(&raw mut WORLD);
-        let mut words = command.split_whitespace();
-        let verb = match words.next() {
-            Some(v) => v,
-            None => return "".to_string(),
-        };
-        match Direction::from_str(verb) {
-            Ok(direction) => return world.travel_cardinal(direction),
-            Err(_) => (),
-        };
-        match RegionEnum::from_str(command) {
-            Ok(region) => return world.travel_to(region),
-            Err(_) => (),
-        };
-        let params = words.collect::<Vec<&str>>().join(" ");
-        match verb {
-            "go"|"travel"|"to"|"the" => step(&params),
-            "wait"|"advance"|"sleep" => world.advance_time(),
-            "inv"|"inventory"|"satchel"|"list" => world.list_inventory(),
-            "gather"|"forage"|"collect" => world.forage(rand::rng().random_range(1..4)),
-            "herb"|"herbs" => world.discoveries.list_herb_locations(),
-            "recipe"|"recipes"|"effects" => world.discoveries.list_recipes(),
-            "brew"|"decoct"|"cauldron" => world.decoct_named(&params),
-            "soak"|"infuse" => world.infuse_named(&params),
-            "bottle" => world.bottle_named(&params),
-            "dump"|"spill"|"empty" => world.dump(&params),
-            "stir" => world.stir(),
-            "sell" => world.sell(&params),
-            "buy" => world.buy(&params),
-            "exp"|"xp"|"status" => world.experience(),
-            "map" | "surroundings" => world.regions[world.current_region].local_map(),
-            "book"|"textbook"|"alchemy" => world.discoveries.book(),
-            "note"|"experiement"|"experiments" => world.discoveries.show_experiment_note(),
-            "infusion"|"infusions" => world.discoveries.show_infusion_instructions(),
-            "look" => world.look(),
-            "help" => help(),
-            _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
-        }
+    let mut cell = WORLD.write().unwrap();
+    let world: &mut World = cell.get_mut_or_init(|| World::new());
+    let mut words = command.split_whitespace();
+    let verb = match words.next() {
+        Some(v) => v,
+        None => return "".to_string(),
+    };
+    match Direction::from_str(verb) {
+        Ok(direction) => return world.travel_cardinal(direction),
+        Err(_) => (),
+    };
+    match RegionEnum::from_str(command) {
+        Ok(region) => return world.travel_to(region),
+        Err(_) => (),
+    };
+    let params = words.collect::<Vec<&str>>().join(" ");
+    match verb {
+        "go"|"travel"|"to"|"the" => step(&params),
+        "wait"|"advance"|"sleep" => world.advance_time(),
+        "inv"|"inventory"|"satchel"|"list" => world.list_inventory(),
+        "gather"|"forage"|"collect" => world.forage(rand::rng().random_range(1..4)),
+        "herb"|"herbs" => world.discoveries.list_herb_locations(),
+        "recipe"|"recipes"|"effects" => world.discoveries.list_recipes(),
+        "brew"|"decoct"|"cauldron" => world.decoct_named(&params),
+        "soak"|"infuse" => world.infuse_named(&params),
+        "bottle" => world.bottle_named(&params),
+        "dump"|"spill"|"empty" => world.dump(&params),
+        "stir" => world.stir(),
+        "sell" => world.sell(&params),
+        "buy" => world.buy(&params),
+        "exp"|"xp"|"status" => world.experience(),
+        "map" | "surroundings" => world.regions[world.current_region].local_map(),
+        "book"|"textbook"|"alchemy" => world.discoveries.book(),
+        "note"|"experiement"|"experiments" => world.discoveries.show_experiment_note(),
+        "infusion"|"infusions" => world.discoveries.show_infusion_instructions(),
+        "look" => world.look(),
+        "help" => help(),
+        _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
     }
 }
 
 #[wasm_bindgen]
 pub fn save_to_json() -> String {
-    unsafe {
-        let world = &mut *(&raw mut WORLD);
-        world.save_to_json()
-    }
+    let cell = WORLD.read().unwrap();
+    let world: &World = cell.get_or_init(|| World::new());
+    serde_json::to_string(world).unwrap()
 }
 
 #[wasm_bindgen]
 pub fn load_from_json(json: &str) {
-    unsafe {
-        let world = &mut *(&raw mut WORLD);
-        world.load_from_json(json);
-    }
+    let cell = WORLD.write().unwrap();
+    let _ = cell.set(serde_json::from_str(json).unwrap());
 }

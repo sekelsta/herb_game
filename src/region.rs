@@ -1,7 +1,7 @@
 use enum_map::{enum_map, Enum, EnumMap};
 use rand::seq::SliceRandom;
 use strum_macros::EnumString;
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 use crate::KnowledgeState;
 use crate::herbs::*;
@@ -270,4 +270,24 @@ impl Region {
         }
         None
     }
+}
+
+pub fn serialize_regions<S: Serializer>(regions: &EnumMap<RegionEnum, Region>, serializer: S) -> Result<S::Ok, S::Error> {
+    let saved: EnumMap<RegionEnum, SavedRegion> = enum_map! { region => SavedRegion { current_herbs: regions[region].current_herbs.clone() } };
+    saved.serialize(serializer)
+}
+
+pub fn deserialize_regions<'de, D: Deserializer<'de>>(deserializer: D) -> Result<EnumMap<RegionEnum, Region>, D::Error> {
+    let saved: EnumMap<RegionEnum, SavedRegion> = EnumMap::deserialize(deserializer)?;
+    let mut regions = Region::new_regions();
+    for (e, r) in saved.iter() {
+        regions[e].current_herbs = r.current_herbs.clone();
+    }
+    Ok(regions)
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SavedRegion {
+    // TO_OPTIMIZE: A hashmap from plant species to count, shuffled on load, would be slightly more efficient in json format
+    pub current_herbs: Vec<Plant>,
 }

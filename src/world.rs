@@ -4,11 +4,14 @@ use serde::{Serialize, Deserialize};
 
 use crate::*;
 
+static UNLIMITED_INGREDIENTS: Lazy<Vec<&'static Ingredient>> = Lazy::new(|| vec!(&*WATER));
+
+#[derive(Serialize, Deserialize)]
 pub struct World {
+    #[serde(serialize_with = "region::serialize_regions", deserialize_with = "region::deserialize_regions")]
     pub regions: EnumMap<RegionEnum, Region>,
     pub current_region: RegionEnum,
     pub satchel: Vec<Ingredient>,
-    pub unlimited_ingredients: Vec<&'static Ingredient>,
     pub empty_bottles: i32,
     pub bottles_sold: i32,
     pub money: i32,
@@ -25,7 +28,6 @@ impl World {
             empty_bottles: 4,
             bottles_sold: 0,
             money: 2,
-            unlimited_ingredients: vec!(&*WATER),
             satchel: Vec::new(),
             infusion_shelf: Vec::new(),
             cauldron: None,
@@ -123,8 +125,8 @@ impl World {
         if let Some(pos) = self.satchel.iter().position(|x| filter(x) && params.starts_with(x.base_name().as_str())) {
             return Ok(self.satchel.remove(pos));
         }
-        if let Some(pos) = self.unlimited_ingredients.iter().position(|x| x.matches_name(params)) {
-            return Ok(self.unlimited_ingredients[pos].clone());
+        if let Some(pos) = UNLIMITED_INGREDIENTS.iter().position(|x| x.matches_name(params)) {
+            return Ok(UNLIMITED_INGREDIENTS[pos].clone());
         }
         if let Some(_pos) = self.infusion_shelf.iter().position(|x| x.full_name() == params) {
             return Err("Wait for that to finish infusing first.".to_string())
@@ -561,14 +563,5 @@ impl World {
         }
 
         vec.join("\n")
-    }
-
-    pub fn save_to_json(&self) -> String {
-        // TODO
-        serde_json::to_string(&self.satchel).unwrap()
-    }
-
-    pub fn load_from_json(&mut self, json: &str) {
-        self.satchel = serde_json::from_str(json).unwrap();
     }
 }

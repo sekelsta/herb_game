@@ -35,6 +35,5 @@ fn main() -> io::Result<()> {
     }
 
     let mut output = std::fs::File::create(path)?;
-    write!(output, "{}", save_to_json()) 
-    //Ok(())
+    write!(output, "{}", save_to_json())
 }

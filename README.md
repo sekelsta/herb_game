@@ -9,6 +9,12 @@ Install prerequisites:
 - `rustup target add wasm32-unknown-unknown`
 - `cargo install wasm-bindgen-cli`
 
+To set up the nightly compiler version (needed for `once_cell_get_mut`):
+```
+rustup update -- nightly
+rustup default nightly
+```
+
 Run locally in terminal:
 
 ```
