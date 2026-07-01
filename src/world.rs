@@ -421,8 +421,10 @@ impl World {
             }
             messages.push(Element::Air.unstable_message().to_string());
         }
+        let mut num_warnings = 0;
         for (element, status) in brew.elements {
             if status[Modifier::Provide] - status[Modifier::Stabilize] == element.base_stability() {
+                num_warnings += 1;
                 messages.push(element.warning().to_string());
             }
         }
@@ -430,6 +432,8 @@ impl World {
 
         if messages.is_empty() {
             None
+        } else if messages.len() <= num_warnings {
+            Some(messages.join("\n"))
         } else {
             Some(format!("{}\n{}", messages.join("\n"), brew.show_in_progress(&self.discoveries)))
         }

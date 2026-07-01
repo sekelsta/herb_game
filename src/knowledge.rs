@@ -6,18 +6,18 @@ use crate::{Effect, Element, Plant, Ingredient, Modifier, RegionEnum};
 use crate::potions::REFERENCE_POTIONS;
 use crate::herbs::REFERENCE_HERBS;
 
-pub const ALCHEMY_BOOK_ONE: &str = "Introduction to Herbal Brews
+pub const ALCHEMY_BOOK_INTRO: &str = "Introduction to Herbal Brews
 Ever wonder what is happening when you boil an herb in your cauldron? There is the obvious change you see, which is the herb wilting and the water taking its color. But there are also elemental energies at play. Boiling in water allows those energies to be released into the water, where they become available for the mystical effects of potions. Adding another herb will release its elements as well, but as you wait, the lighter elements will evaporate. You can stir the cauldron in the rare case where you want evaporation to happen faster. If you want to take a pause, you can bottle your mixture and add it back later.
-Which, if any, potion is created depends on how many energies of each element are available in the brew. For instance, a combination of air and earth without too much fire is good for healing, as written by Guldin Schatzkarmmer in 1598. The potion will be weaker if the elements available are not quite the right ones. I recommend experimenting with combinations of several herbs to see what effects you can discover.
+Which, if any, potion is created depends on how many energies of each element are available in the brew. For instance, a combination of air and earth without much fire is good for healing, as written by Guldin Schatzkarmmer in 1598. The potion will be weaker if the elements available are not quite the right ones. I recommend experimenting with combinations of several herbs to see what effects you can discover.
 Oh, and be aware, making powerful potions often requires a great deal of elemental energies, yet taking that too far can have ...exciting... results. Be sure to set up your workspace outside and in an area cleared of flammable materials.";
 
-pub const ALCHEMY_BOOK_TWO: &str = "Experiments on Concentrated Earth
+pub const ALCHEMY_BOOK_STABILITY: &str = "Experiments on Concentrated Earth
 Trial 1: Start with an empty cauldron. Add water and bring it to a boil. Then add three dandelions, one at a time. Notice a change in the texture of the brew as elemental earth is extracted. Add a fourth dandelion and quickly dump the mixture. Watch as it solidifies into rock.
 Trial 2: Start again with an empty cauldron, and again add water and bring it to a boil. Add three dandelions and notice the texture change. Add red clover and notice the texture change back. Then add a fourth dandelion, and notice that though it thickens again, the earth stays stable in the liquid brew, without turning the whole thing to rock.
 Trial 3: As before, but red clover was added first, then dandelions. The mixture began to thicken at four dandelions, but held its liquid form.
 What does this mean? It seems the red clover is having some effect on the earth provided by the dandelion. Further experimentation may clarify the details.";
 
-pub const ALCHEMY_BOOK_THREE: &str = "Infusion of herbs
+pub const ALCHEMY_BOOK_INFUSIONS: &str = "Infusion of herbs
 Usually, we boil an herb in water to extract the elemental energies. However, I've found that soaking it in cold water overnight also works. You can also use spirits or oil as a base instead of water. Leave the herb to soak in a cool, dark, place, such as a shelf, and once it's ready you'll see the liquid has taken on the color and elemental properties of the herb. Unlike a boiled decoction, subtle effects are preserved. Another thing to note is that more of the elemental energy stays with the plant compared to a decoction. And certain types of elements, if they are not soluble in your chosen base, will not become available at all. This can be used to your advantage to purify the remaining elements, and can allow for higher quality potions if you know what you're doing.
 For a stronger infusion, you can add another herb the next day. You can also infuse into a tea, or brew your infusion in a cauldron.";
 
@@ -169,7 +169,7 @@ impl KnowledgeState {
     }
 
     pub fn book(&self) -> String {
-        ALCHEMY_BOOK_ONE.to_string()
+        ALCHEMY_BOOK_INTRO.to_string()
     }
 
     pub fn show_experiment_note(&self) -> String {
@@ -177,7 +177,7 @@ impl KnowledgeState {
             return "You feel like you could do with more hands-on experience before reading theory.".to_string();
         }
 
-        ALCHEMY_BOOK_TWO.to_string()
+        ALCHEMY_BOOK_STABILITY.to_string()
     }
 
     pub fn show_infusion_instructions(&self) -> String {
@@ -185,6 +185,6 @@ impl KnowledgeState {
             return "You feel like you could do with more hands-on experience before reading theory.".to_string();
         }
 
-        ALCHEMY_BOOK_THREE.to_string()
+        ALCHEMY_BOOK_INFUSIONS.to_string()
     }
 }
