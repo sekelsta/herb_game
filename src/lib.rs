@@ -1,7 +1,6 @@
-#![feature(once_cell_get_mut)]
 use std::str::FromStr;
 use rand::RngExt;
-use std::sync::{OnceLock, RwLock};
+use std::cell::RefCell;
 use once_cell::sync::Lazy;
 use wasm_bindgen::prelude::*;
 
@@ -21,7 +20,9 @@ use crate::knowledge::*;
 use crate::herbs::*;
 use crate::world::World;
 
-static WORLD: RwLock<OnceLock<World>> = RwLock::new(OnceLock::new());
+thread_local! {
+    static WORLD: RefCell<World> = RefCell::new(World::new());
+}
 
 fn help() -> String {
 "==Navigation==
@@ -62,9 +63,7 @@ pub fn welcome_on_load() -> String {
 }
 
 #[wasm_bindgen]
-pub fn step(command: &str) -> String {
-    let mut cell = WORLD.write().unwrap();
-    let world: &mut World = cell.get_mut_or_init(|| World::new());
+pub fn step(command: &str) -> String { WORLD.with_borrow_mut(|world| {
     let mut words = command.split_whitespace();
     let verb = match words.next() {
         Some(v) => v,
@@ -102,17 +101,21 @@ pub fn step(command: &str) -> String {
         "help" => help(),
         _ => format!("You're not sure how to '{}'. Try 'help'.", verb),
     }
-}
+})}
 
 #[wasm_bindgen]
 pub fn save_to_json() -> String {
-    let cell = WORLD.read().unwrap();
-    let world: &World = cell.get_or_init(|| World::new());
-    serde_json::to_string(world).unwrap()
+    WORLD.with(|world|
+        serde_json::to_string(world).unwrap()
+    )
 }
 
 #[wasm_bindgen]
 pub fn load_from_json(json: &str) {
-    let cell = WORLD.write().unwrap();
-    let _ = cell.set(serde_json::from_str(json).unwrap());
+    WORLD.set(serde_json::from_str(json).unwrap());
+}
+
+#[wasm_bindgen]
+pub fn restart_save() {
+    WORLD.set(World::new());
 }
