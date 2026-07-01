@@ -128,7 +128,7 @@ function resetTerminal() {
 // ----------
 
 let metaCommandState: "quit" | null = null;
-const QUIT_WORDS = ["quit", "exit", "restart"];
+const QUIT_WORDS = ["close shop"];
 
 async function runCommand(input: string): Promise<string | null> {
   // Meta-commands handled in JS.
