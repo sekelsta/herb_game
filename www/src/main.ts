@@ -116,16 +116,18 @@ function scrollToBottom() {
 }
 
 // ----------
-// RUN COMMAND IN RUST
+// RUN COMMAND
 // ----------
 
 let metaCommandState: "quit" | null = null;
+const QUIT_WORDS = ["quit", "exit", "restart"];
 
 async function runCommand(input: string): Promise<string> {
   // Meta-commands handled in JS.
+  const normalized = normalize(input);
   switch (metaCommandState) {
     case "quit":
-      if (input.toLowerCase().trim().startsWith("y")) {
+      if (normalized.startsWith("y") || QUIT_WORDS.includes(normalized)) {
         // Quit the game and start over.
         localStorage.removeItem(localStorageKey);
         window.location.reload();
@@ -136,16 +138,21 @@ async function runCommand(input: string): Promise<string> {
         return "Well, excuse you.";
       }
     case null:
-      if (["quit", "exit", "restart"].includes(input.toLowerCase().trim())) {
+      if (QUIT_WORDS.includes(normalized)) {
         metaCommandState = "quit";
         return "Quit your current game and start over - are you sure?";
       }
     // Else fall through to normal commands.
   }
 
+  // Run command in Rust.
   const output = step(input);
   localStorage.setItem(localStorageKey, save_to_json());
   return output;
+}
+
+function normalize(command: string): string {
+  return command.trim().toLocaleLowerCase();
 }
 
 // ----------
