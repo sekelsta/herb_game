@@ -153,7 +153,7 @@ async function runCommand(input: string): Promise<string | null> {
   }
 
   // Run command in Rust.
-  const output = step(input);
+  const output = step(normalized);
   localStorage.setItem(localStorageKey, save_to_json());
   return output;
 }
