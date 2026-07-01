@@ -49,6 +49,7 @@ sleep - advances time, allowing herbs to regrow, infusions to infuse, and fresh 
 sell [item] - exchange goods for money at the village market
 buy [item] - same deal, but money for goods
 xp - tells you how close you are to learning something new
+close shop - start the game over again
 help - print this info".to_string()
 }
 

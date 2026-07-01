@@ -1,6 +1,6 @@
 use std::io::{self, BufRead, Write};
 
-use herb_game::{step, welcome, welcome_on_load, save_to_json, load_from_json};
+use herb_game::{step, welcome, welcome_on_load, save_to_json, load_from_json, restart_save};
 
 fn main() -> io::Result<()> {
     let path = "save.json";
@@ -28,6 +28,19 @@ fn main() -> io::Result<()> {
         line = line.trim().to_lowercase();
         if line == "quit" {
             break;
+        }
+        if line == "close shop" {
+            println!("This will delete your progress and start over. Are you sure? yes/no");
+            let mut confirmation = String::new();
+            stdin.lock().read_line(&mut confirmation)?;
+            confirmation = confirmation.trim().to_lowercase();
+            if confirmation.starts_with("y") {
+                restart_save();
+                println!("{}", welcome());
+            } else {
+                println!("Nevermind, then.");
+            }
+            continue;
         }
 
         let result = step(&line);
