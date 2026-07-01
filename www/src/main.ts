@@ -1,6 +1,14 @@
 import "./style.css";
 
-import init, { step, welcome } from "../wasm-build/herb_game";
+import init, {
+  load_from_json,
+  save_to_json,
+  step,
+  welcome,
+  welcome_on_load,
+} from "../wasm-build/herb_game";
+
+const localStorageKey = "herbGameSave";
 
 const terminal = document.getElementById("terminal") as HTMLDivElement;
 const terminalWrapper = document.getElementById(
@@ -112,7 +120,9 @@ function scrollToBottom() {
 // ----------
 
 async function runCommand(input: string): Promise<string> {
-  return step(input);
+  const output = step(input);
+  localStorage.setItem(localStorageKey, save_to_json());
+  return output;
 }
 
 // ----------
@@ -120,11 +130,21 @@ async function runCommand(input: string): Promise<string> {
 // ----------
 
 prepareOutput();
-await Promise.all([
-  // WASM init
-  init(),
-  // Wait a bit before displaying the welcome text.
-  new Promise((resolve) => setTimeout(resolve, 500)),
-]);
-// Welcome text
-doOutput(welcome());
+
+// WASM init
+await init();
+
+const savedJson = localStorage.getItem(localStorageKey);
+if (savedJson) {
+  // Load saved state.
+  // TODO: what if corrupted?
+  load_from_json(savedJson);
+
+  // Wait a bit, then display welcome text.
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  doOutput(welcome_on_load());
+} else {
+  // Wait a bit, then display welcome text.
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  doOutput(welcome());
+}
