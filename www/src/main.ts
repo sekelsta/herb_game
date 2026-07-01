@@ -134,17 +134,27 @@ prepareOutput();
 // WASM init
 await init();
 
-const savedJson = localStorage.getItem(localStorageKey);
-if (savedJson) {
-  // Load saved state.
-  // TODO: what if corrupted?
-  load_from_json(savedJson);
+// Try to load saved state.
+const loaded = loadSavedState();
 
-  // Wait a bit, then display welcome text.
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  doOutput(welcome_on_load());
-} else {
-  // Wait a bit, then display welcome text.
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  doOutput(welcome());
+// Wait a bit, then display welcome text.
+await new Promise((resolve) => setTimeout(resolve, 500));
+doOutput(loaded ? welcome_on_load() : welcome());
+
+function loadSavedState(): boolean {
+  const savedJson = localStorage.getItem(localStorageKey);
+  if (savedJson) {
+    try {
+      load_from_json(savedJson);
+      return true;
+    } catch (err) {
+      // Remove the offending state, but store a backup.
+      localStorage.setItem(localStorageKey + "_corrupted", savedJson);
+      localStorage.removeItem(localStorageKey);
+      console.error(err);
+      // Try to continue normally (with a new game), though it might panic in step().
+    }
+  }
+
+  return false;
 }
