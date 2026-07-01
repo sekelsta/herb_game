@@ -2,6 +2,7 @@ import "./style.css";
 
 import init, {
   load_from_json,
+  restart_save,
   save_to_json,
   step,
   welcome,
@@ -55,7 +56,9 @@ function submitInput() {
   const input = inputSpan.innerText;
   prepareOutput();
 
-  void runCommand(input).then(doOutput);
+  void runCommand(input).then((output) => {
+    if (output !== null) doOutput(output);
+  });
 }
 
 async function doOutput(output: string, gradual = true) {
@@ -115,6 +118,11 @@ function scrollToBottom() {
   terminalWrapper.scrollTop = terminalWrapper.scrollHeight;
 }
 
+function resetTerminal() {
+  terminal.innerHTML = "";
+  prepareOutput();
+}
+
 // ----------
 // RUN COMMAND
 // ----------
@@ -122,16 +130,15 @@ function scrollToBottom() {
 let metaCommandState: "quit" | null = null;
 const QUIT_WORDS = ["quit", "exit", "restart"];
 
-async function runCommand(input: string): Promise<string> {
+async function runCommand(input: string): Promise<string | null> {
   // Meta-commands handled in JS.
   const normalized = normalize(input);
   switch (metaCommandState) {
     case "quit":
       if (normalized.startsWith("y") || QUIT_WORDS.includes(normalized)) {
         // Quit the game and start over.
-        localStorage.removeItem(localStorageKey);
-        window.location.reload();
-        return "";
+        void quit();
+        return null;
       } else {
         // Don't quit.
         metaCommandState = null;
@@ -149,6 +156,17 @@ async function runCommand(input: string): Promise<string> {
   const output = step(input);
   localStorage.setItem(localStorageKey, save_to_json());
   return output;
+}
+
+async function quit() {
+  metaCommandState = null;
+  resetTerminal();
+  localStorage.removeItem(localStorageKey);
+  restart_save();
+
+  // Wait a bit, then display welcome text.
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  doOutput(welcome());
 }
 
 function normalize(command: string): string {
