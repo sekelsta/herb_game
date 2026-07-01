@@ -60,7 +60,8 @@ impl Element {
 
     pub fn warning(&self) -> &'static str {
         match self {
-            Water => "Your brew is getting quite close to the rim of the cauldron. You think you had better stop adding water.",
+            Water => "Your brew gurgles unnaturally. You think you had better stop adding water.",
+            // Water => "Your brew is getting quite close to the rim of the cauldron. You think you had better stop adding water."
             Earth => "Your brew shows signs of thickening and smells earthy.",
             Fire => "The boiling cauldron bubbles with small flashes of blue and orange.",
             Air => "Wisps of steam start dancing in unusual ways.",
@@ -79,7 +80,8 @@ impl Element {
         // Special effects: Water, air, light, ice, thunder, taint
         // Everything else should empty the cauldron
         match self {
-            Water => "With too much water, your cauldron boils over. The mixture spills, losing elemental",
+            Water => "A fountain jets up from the middle of your cauldron. A splash over the edge loses you elemental",
+            // Water => "With too much water, your cauldron boils over. The mixture spills, losing elemental",
             Earth => "The mixture thickens. You quickly dump out the cauldron and watch as your concoction turns rock solid.",
             Fire => "Your cauldron lights on fire. This is why you do alchemy outdoors. You dump the ash and scrub the cauldron.",
             Air => "A whirlwind appears right inside your cauldron. When it winds down, half of your mixture is gone.",
