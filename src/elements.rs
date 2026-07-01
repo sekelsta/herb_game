@@ -19,7 +19,7 @@ pub const TAINTABLE_ELEMENTS: [Element; 11] = [
     Earth,
 ];
 
-pub const EVAPORABLE_ELEMENTS: [Element; 8] = [
+pub const EVAPORABLE_ELEMENTS: [Element; 9] = [
     Void,
     Air,
     Spirit,

@@ -179,8 +179,8 @@ impl Potion {
 pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
     // ------ Tier 0 ------ //
     Potion::new(HealthBoost, |elements| {
-        elements[Earth] = 4;
-        elements[Air] = 4;
+        elements[Earth] = 3;
+        elements[Air] = 3;
     }),
     Potion::new(Relaxation, |elements| {
         elements[Water] = 3;
@@ -190,8 +190,8 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Spirit] = 1;
     }),
     Potion::new(Patience, |elements| {
-        elements[Earth] = 5;
-        elements[Water] = 3;
+        elements[Earth] = 6;
+        elements[Water] = 4;
     }),
     Potion::new(Alertness, |elements| {
         elements[Fire] = 3;
