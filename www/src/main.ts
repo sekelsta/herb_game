@@ -60,7 +60,7 @@ function submitInput() {
 
 async function doOutput(output: string, gradual = true) {
   if (gradual) {
-    // Output chars at 30 fps, targeting a total runtime of 5 seconds
+    // Output chars at 30 fps, targeting a total runtime of 3 seconds
     // except with a minimum output rate of 80 chars/second.
     const runtimeMs = Math.min(3000, output.length * (1000 / 80));
     const intervals = runtimeMs / 16;
@@ -129,7 +129,7 @@ async function runCommand(input: string): Promise<string> {
         // Quit the game and start over.
         localStorage.removeItem(localStorageKey);
         window.location.reload();
-        return "Goodbye";
+        return "";
       } else {
         // Don't quit.
         metaCommandState = null;
