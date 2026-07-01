@@ -119,7 +119,30 @@ function scrollToBottom() {
 // RUN COMMAND IN RUST
 // ----------
 
+let metaCommandState: "quit" | null = null;
+
 async function runCommand(input: string): Promise<string> {
+  // Meta-commands handled in JS.
+  switch (metaCommandState) {
+    case "quit":
+      if (input.toLowerCase().trim().startsWith("y")) {
+        // Quit the game and start over.
+        localStorage.removeItem(localStorageKey);
+        window.location.reload();
+        return "Goodbye";
+      } else {
+        // Don't quit.
+        metaCommandState = null;
+        return "Well, excuse you.";
+      }
+    case null:
+      if (["quit", "exit", "restart"].includes(input.toLowerCase().trim())) {
+        metaCommandState = "quit";
+        return "Quit your current game and start over - are you sure?";
+      }
+    // Else fall through to normal commands.
+  }
+
   const output = step(input);
   localStorage.setItem(localStorageKey, save_to_json());
   return output;
