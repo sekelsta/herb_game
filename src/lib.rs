@@ -25,18 +25,16 @@ thread_local! {
 }
 
 fn help() -> String {
-"==Navigation==
-north, south, east, west, [location name] - travel
+"
+north/south/east/west or the name of a neighboring location - to travel
 look - describe your current location, including cauldron contents
 map - display a map of the area
 
-==Foraging==
-gather or forage - search for herbs in your current region
+gather - search for herbs in your current region
 inv or satchel - list items inside your satchel
 herbs - lists where you've found each herb before
 
-==Brewing==
-book - read your alchemy instruction manual
+book, note, letter, infusions - read about how to do alchemy, unlocked over time
 brew [ingredient] - add the ingredient to the cauldron for a decoction
 soak [ingredient] - add the ingredient to a bottle for an infusion. Not available in early game.
 stir - stir the cauldron as it boils, allowing lighter elements to evaporate
@@ -44,18 +42,15 @@ bottle [ingredient] - put the named ingredient into a bottle, or finish and bott
 dump - empty out the cauldron and get rid of the contents
 recipes - check your notes on recipes you've discovered
 
-==Misc==
 sleep - advances time, allowing herbs to regrow, infusions to infuse, and fresh herbs to dry out
-sell [item] - exchange goods for money at the village market
-buy [item] - same deal, but money for goods
+buy/sell [item] - exchange goods for money at the village market
 xp - tells you how close you are to learning something new
-close shop - start the game over again
-help - print this info".to_string()
+close shop - delete your save and start the game over again".to_string()
 }
 
 #[wasm_bindgen]
 pub fn welcome() -> String {
-    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!\nYou remember your trip in yesterday from the NORTH, passing through the VILLAGE. Just north of the village was a field with a few plants you recognized, perfect for starting some experiments on.\nType a direction to travel, or 'help' to list commands.".to_string()
+    "The sun shines through the aged hut's shutters as you wake up. You begin to roll over, then remember what day it is. Today is the day you're opening your very own alchemy shop!\nYou remember your trip in yesterday from the NORTH, passing through the VILLAGE. Just north of the village was a field with a few plants you recognized, perfect for starting some experiments on.\nSitting on the table is your introductory BOOK on alchemy.\nType a direction to travel, or 'help' to list commands.".to_string()
 }
 
 #[wasm_bindgen]
@@ -93,6 +88,7 @@ pub fn step(command: &str) -> String { WORLD.with_borrow_mut(|world| {
         "stir" => world.stir(),
         "sell" => world.sell(&params),
         "buy" => world.buy(&params),
+        "market" => world.market_info(),
         "exp"|"xp"|"status" => world.experience(),
         "map" | "surroundings" => world.regions[world.current_region].local_map(),
         "book"|"textbook"|"alchemy" => world.discoveries.book(),

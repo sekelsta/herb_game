@@ -96,6 +96,10 @@ impl World {
         if REFERENCE_HERBS[found].tier > self.discoveries.herb_tier {
             // Return it to the back.
             available.push(found);
+            if rand::random_bool(0.5) {
+                // Continue without displaying message. Too many unknown herbs so hide some.
+                return self.forage(count);
+            }
             if count <= 1 {
                 return "You don't recognize this plant. You leave it be and keep looking.".to_string();
             }
@@ -268,7 +272,7 @@ impl World {
         }
         let mut added: Option<String> = None;
         if self.cauldron.is_none() {
-            if let Solvent::Water | Solvent::Ether | Solvent::Oil = addition.solvent {
+            if let Solvent::Water | Solvent::Wine | Solvent::Ethanol | Solvent::Oil = addition.solvent {
                 return self.fill_cauldron(&addition);
             }
             added = Some(self.fill_cauldron(&WATER));
@@ -439,13 +443,24 @@ impl World {
         }
     }
 
+    pub fn market_info(&self) -> String {
+        let sales = match self.discoveries.herb_tier {
+            0 => "Empty bottles cost 2 silver apiece. More ingredients are available for advanced alchemists.",
+            1 => "Empty bottles cost 2 silver apiece, and wine costs 4 silver. More ingredients are available for advanced alchemists.",
+            2 => "Empty bottles cost 2 silver apiece, wine costs 4 silver, and spirits cost 6. More ingredients are available for advanced alchemists.",
+            _ => "Empty bottles cost 2 silver apiece, wine costs 4 silver, spirits cost 6, and oil costs 5.",
+        };
+        format!("{}\nWhen you sell potions, customers usually return the empty bottle within a day or two.", sales)
+    }
+
     pub fn buy(&mut self, params: &str) -> String {
         if self.current_region != RegionEnum::Village {
             return "There's no one here to buy from.".to_string()
         }
         let bottle_price = 2;
+        let wine_price = 4;
+        let oil_price = 5;
         let spirits_price = 6;
-        let oil_price = 4;
         match params {
             "bottle"|"b"|"" => {
                 if self.money < bottle_price {
@@ -455,6 +470,18 @@ impl World {
                 self.empty_bottles += 1;
                 "You bought an empty bottle.".to_string()
             }
+            "wine" => {
+                if !self.discoveries.wine_unlocked() {
+                    return "You're not skilled enough to work with that yet.".to_string();
+                }
+                if self.money < wine_price {
+                    return format!("You only have {} silver and can't afford {} for wine", self.money, wine_price);
+                }
+                self.money -= wine_price;
+                self.satchel.push(WINE.clone());
+                self.bottles_sold -= 1;
+                "You bought wine.".to_string()
+            }
             "spirits" => {
                 if !self.discoveries.spirits_unlocked() {
                     return "You're not skilled enough to work with that yet.".to_string();
@@ -463,7 +490,7 @@ impl World {
                     return format!("You only have {} silver and can't afford {} for some spirits", self.money, spirits_price);
                 }
                 self.money -= spirits_price;
-                self.satchel.push(ETHER.clone());
+                self.satchel.push(SPIRITS.clone());
                 self.bottles_sold -= 1;
                 "You bought spirits.".to_string()
             }

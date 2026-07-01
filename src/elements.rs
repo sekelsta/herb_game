@@ -51,8 +51,9 @@ pub enum Element {
 impl Element {
     pub fn soluble(&self, solvent: &Solvent) -> bool {
         match solvent {
-            Solvent::Water => !matches!(self, Earth | Taint | Mana),
-            Solvent::Ether => !matches!(self, Earth | Thunder),
+            Solvent::Water => !matches!(self, Earth | Taint | Mana | Air),
+            Solvent::Wine => !matches!(self, Earth | Void),
+            Solvent::Ethanol => !matches!(self, Earth | Thunder),
             Solvent::Oil => matches!(self, Void | Air | Taint | Light | Shadow),
             Solvent::Air => matches!(self, Void | Air | Spirit | Light),
             Solvent::Vivo => true,

@@ -77,12 +77,16 @@ impl KnowledgeState {
         self.recipes.values().filter(|x| x.len() > 0).count()
     }
 
-    pub fn spirits_unlocked(&self) -> bool {
+    pub fn wine_unlocked(&self) -> bool {
         self.herb_tier >= 1
     }
 
-    pub fn oil_unlocked(&self) -> bool {
+    pub fn spirits_unlocked(&self) -> bool {
         self.herb_tier >= 2
+    }
+
+    pub fn oil_unlocked(&self) -> bool {
+        self.herb_tier >= 3
     }
 
     pub fn stability_known(&self) -> bool {
@@ -90,15 +94,25 @@ impl KnowledgeState {
     }
 
     pub fn infusion_known(&self) -> bool {
-        self.herb_tier >= 2
+        self.herb_tier >= 3
+    }
+
+    pub fn knows_element(&self, element: Element) -> bool {
+        use Element::*;
+        match element {
+            Earth | Water | Fire | Air => true,
+            Spirit | Light | Shadow => self.herb_tier >= 1,
+            Ice | Thunder | Mana => self.herb_tier >= 2,
+            Void | Taint => self.herb_tier >= 3,
+        }
     }
 
     pub fn effects_to_next_level(&self) -> usize {
         match self.herb_tier {
-            0 => 3,
-            1 => 5,
-            2 => 8,
-            3 => 12,
+            0 => 2,
+            1 => 4,
+            2 => 6,
+            3 => 10,
             _ => REFERENCE_POTIONS.len(),
         }
     }
@@ -123,12 +137,12 @@ impl KnowledgeState {
         }
         self.herb_tier += 1;
         match self.herb_tier {
-            1 => Some("You had a dream about studying plants with your grandma. In the morning, you find a note that definitely wasn't there before. Type 'note' to read it.".to_string()),
-            2 => Some("A raven flies in through the window, with a piece of paper tied to its leg. It stands still while you take it, then flies off. Type 'letter' to read it.".to_string()),
+            1 => Some("You had a dream about studying plants with your grandma. In the morning, you find a note that definitely wasn't there before. Type 'note' to read it.\nYou feel confident about more plant species and also ready to try something new from the village market.".to_string()),
+            2 => Some("A raven flies in through the window, with a piece of paper tied to its leg. It stands still while you take it, then flies off. Type 'letter' to read it.\nYou've also learned about new species of plants and new ingredients from the market.".to_string()),
             // TODO: Consider requiring a certain level of potion strength as well
-            3 => Some("You feel comfortable with your cauldron and ready to read about new methods. Type 'infusions' to see what the library has on it. You've also learned to recognize new herbs.".to_string()),
+            3 => Some("You feel comfortable with your cauldron and ready to read about new methods. Type 'infusions' to see what the library has on it. You've also learned to recognize new herbs and have an idea for something you saw at the market.".to_string()),
             // TODO: Distillation here
-            4 => Some("You've learned to recognize new plant species!".to_string()),
+            4 => Some("You've become a well-known alchemist!".to_string()),
             // Max level
             _ => None,
         }

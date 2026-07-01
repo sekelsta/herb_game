@@ -159,7 +159,7 @@ impl Region {
             },
             Village => Region {
                 name: "Village Square",
-                description: "You can buy or sell things here.\nEmpty bottles cost 2 silver apiece. For advanced alchemists, spirits cost 8 silver and oil costs 24.\nWhen you sell potions, customers usually return the empty bottle within a day or two.\nNorthward, the road passes by a field overgrown with weeds that only an alchemist could love. To the east is a wildflower meadow where the villagers harvest hay for their animals. To the west stands a forest of dark pines. South, a winding stone path leads home.",
+                description: "You can buy or sell things here. Type 'market' for info.\nNorthward, the road passes by a field overgrown with weeds that only an alchemist could love. To the east is a wildflower meadow where the villagers harvest hay for their animals. To the west stands a forest of dark pines. South, a winding stone path leads home.",
                 routes: enum_map!(
                     South => Hut,
                     North | Northeast | Northwest => Field,

@@ -13,10 +13,17 @@ pub static WATER: Lazy<Ingredient> = Lazy::new(|| {
     elements[Element::Water][Modifier::Provide] = 3;
     Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Water, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
 });
-pub static ETHER: Lazy<Ingredient> = Lazy::new(|| {
+pub static WINE: Lazy<Ingredient> = Lazy::new(|| {
+    let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
+    elements[Element::Spirit][Modifier::Provide] = 1;
+    elements[Element::Earth][Modifier::Provide] = 1;
+    elements[Element::Fire][Modifier::Provide] = 1;
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Wine, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
+});
+pub static SPIRITS: Lazy<Ingredient> = Lazy::new(|| {
     let mut elements: EnumMap<Element, EnumMap<Modifier, i32>> = EnumMap::default();
     elements[Element::Spirit][Modifier::Provide] = 3;
-    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Ether, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
+    Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Ethanol, container: Container::None, elements, toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
 });
 pub static OIL: Lazy<Ingredient> = Lazy::new(|| {
     Ingredient { kind: IngredientKind::BaseSolvent, solvent: Solvent::Oil, container: Container::None, elements: EnumMap::default(), toxicity: 0.0, effect: None, strength: 0.0, is_tainted: false, }
@@ -42,7 +49,8 @@ pub enum Modifier {
 pub enum Solvent {
     Air,
     Water,
-    Ether,
+    Wine,
+    Ethanol,
     Oil,
     Vivo, // Plant matter
 }
@@ -52,9 +60,21 @@ impl Solvent {
         match self {
             Solvent::Air => "air",
             Solvent::Water => "water",
-            Solvent::Ether => "spirits",
+            Solvent::Wine => "wine",
+            Solvent::Ethanol => "spirits",
             Solvent::Oil => "neutral oil",
             Solvent::Vivo => "mashed vegetable", // This shouldn't happen
+        }
+    }
+
+    pub fn name_as_base(&self) -> &'static str {
+        match self {
+            Solvent::Air => "Dry mix",
+            Solvent::Water => "Water base",
+            Solvent::Wine => "Wine base",
+            Solvent::Ethanol => "In spirits",
+            Solvent::Oil => "In neutral oil",
+            Solvent::Vivo => "Mashed vegetable", // This shouldn't happen
         }
     }
 }
@@ -122,21 +142,24 @@ impl Ingredient {
             IngredientKind::Herb { species } => match self.solvent {
                 Solvent::Air => format!("dry {}", species.to_lowercase_string()),
                 Solvent::Water => format!("aqueous {}", species.to_lowercase_string()),
-                Solvent::Ether => format!("spirit of {}", species.to_lowercase_string()),
+                Solvent::Wine => format!("{} wine", species.to_lowercase_string()),
+                Solvent::Ethanol => format!("spirit of {}", species.to_lowercase_string()),
                 Solvent::Oil => format!("{} oil", species.to_lowercase_string()),
                 Solvent::Vivo => format!("fresh {}", species.to_lowercase_string()),
             },
             IngredientKind::Infusion { names } => match self.solvent {
                 Solvent::Air => format!("dried infusion of {}", names.join(", ")),
                 Solvent::Water => format!("infusion of {}", names.join(", ")),
-                Solvent::Ether => format!("{} tincture", names.join(", ")),
+                Solvent::Wine => format!("wine infusion of {}", names.join(", ")),
+                Solvent::Ethanol => format!("{} tincture", names.join(", ")),
                 Solvent::Oil => format!("oil of {}", names.join(", ")),
                 Solvent::Vivo => format!("mashed {}", names.join(", ")),
             },
             IngredientKind::Decoction { names } => match self.solvent {
                 Solvent::Air => format!("dried {} tea", names.join(", ")),
                 Solvent::Water => format!("{} tea", names.join(", ")),
-                Solvent::Ether => format!("boiled {} ether", names.join(", ")),
+                Solvent::Wine => format!("wine decoction of {}", names.join(", ")),
+                Solvent::Ethanol => format!("burning water of {}", names.join(", ")),
                 Solvent::Oil => format!("boiled {} oil", names.join(", ")),
                 Solvent::Vivo => format!("cooked {}", names.join(", ")),
             },
@@ -228,11 +251,22 @@ impl Ingredient {
         }
     }
 
-    pub fn show_in_progress(&self, discoveries: &KnowledgeState) -> String {
+    pub fn display_hint(&self, discoveries: &KnowledgeState) -> &'static str {
         if let Some(effect) = self.effect {
-            return format!("{:?} base: {}. Effect: {} ({}% strength)", self.solvent, self.display_elements(discoveries), effect.to_title_case(), (self.strength * 100.0).round() as i32);
+            if let Some(potion) = REFERENCE_POTIONS.iter().find(|x| x.effect == effect) {
+                return potion.display_hint(self, discoveries);
+            }
         }
-        format!("{:?} base: {}", self.solvent, self.display_elements(discoveries))
+        ""
+    }
+
+    pub fn show_in_progress(&self, discoveries: &KnowledgeState) -> String {
+        let start = if let Some(effect) = self.effect {
+            format!("{:?} base: {}. Effect: {} ({}% strength)", self.solvent, self.display_elements(discoveries), effect.to_title_case(), (self.strength * 100.0).round() as i32)
+        } else {
+            return format!("{}: {}. No effect.", self.solvent.name_as_base(), self.display_elements(discoveries))
+        };
+        format!("{} {}", start, self.display_hint(discoveries))
     }
 
     pub fn matches_name(&self, needle: &str) -> bool {
@@ -336,11 +370,11 @@ impl Ingredient {
     pub fn infusion_kind(&self, addition: &Ingredient) -> Result<IngredientKind, String> {
         match self.solvent {
             Solvent::Vivo | Solvent::Air => return Err(format!("The base for the infusion must be a liquid, not {}.", self.full_name())),
-            Solvent::Water | Solvent::Ether | Solvent::Oil => (),
+            Solvent::Water | Solvent::Wine | Solvent::Ethanol | Solvent::Oil => (),
         }
         match addition.solvent {
             Solvent::Air | Solvent::Vivo => (),
-            Solvent::Water | Solvent::Ether | Solvent::Oil => return Err(format!("You can't soak {} because it's already a liquid.", addition.full_name())),
+            Solvent::Water | Solvent::Wine | Solvent::Ethanol | Solvent::Oil => return Err(format!("You can't soak {} because it's already a liquid.", addition.full_name())),
         }
 
         Ok(match &self.kind {
@@ -457,12 +491,13 @@ impl Ingredient {
         discoveries.mark_recipe(self);
     }
 
+    // TODO: Fix herb drying spam
     pub fn advance_time(&mut self) -> Option<String> {
         let old_name = self.full_name();
         // Water or alcohol evaporate without a container
         match self.container {
             Container::None => match &self.solvent {
-                Solvent::Water | Solvent::Ether | Solvent::Vivo => {
+                Solvent::Water | Solvent::Wine | Solvent::Ethanol | Solvent::Vivo => {
                     self.solvent = Solvent::Air;
                     if self.elements[Element::Water][Modifier::Provide] > 0 {
                         self.elements[Element::Water][Modifier::Provide] -= 1;

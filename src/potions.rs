@@ -3,7 +3,7 @@ use enum_map::{Enum, EnumMap};
 use serde::{Serialize, Deserialize};
 use strum_macros::{Display, IntoStaticStr};
 
-use crate::{Element, Ingredient, Modifier, Solvent};
+use crate::{Element, KnowledgeState, Ingredient, Modifier, Solvent};
 use Element::*;
 use Effect::*;
 
@@ -178,6 +178,26 @@ impl Potion {
             (correct_total - incorrect_total).max(0) as f32 / ref_total as f32
         } else {
             ref_total as f32 * ratio / provided_total as f32
+        }
+    }
+
+    pub fn display_hint(&self, work: &Ingredient, discoveries: &KnowledgeState) -> &'static str {
+        let mut any_missing = false;
+        let mut any_extra = false;
+        let mut any_unknown = false;
+        for (element, required) in self.elements {
+            let provided = work.elements[element][Modifier::Provide];
+            any_missing = any_missing || provided < required;
+            any_extra = any_extra || provided > required;
+            any_unknown = any_unknown || (required > 0 && !discoveries.knows_element(element))
+        }
+        if any_unknown {
+            return "Perfecting this recipe is beyond your skill for now."
+        }
+        match (any_missing, any_extra) {
+            (true, false) => "Something is missing.",
+            (false, true) => "Something is extra.",
+            _ => "",
         }
     }
 }
