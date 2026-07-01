@@ -88,7 +88,7 @@ pub fn step(command: &str) -> String { WORLD.with_borrow_mut(|world| {
         "stir" => world.stir(),
         "sell" => world.sell(&params),
         "buy" => world.buy(&params),
-        "market" => world.market_info(),
+        "sales" => world.market_info(),
         "exp"|"xp"|"status" => world.experience(),
         "map" | "surroundings" => world.regions[world.current_region].local_map(),
         "book"|"textbook"|"alchemy" => world.discoveries.book(),
