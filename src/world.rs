@@ -222,7 +222,11 @@ impl World {
         }
 
         let evaporated = match &mut self.cauldron {
-            Some(ingredient) => format!("{}\n{}", ingredient.boil(&mut self.discoveries), ingredient.show_in_progress(&self.discoveries)),
+            Some(ingredient) => {
+                let boil_text = ingredient.boil(&mut self.discoveries);
+                ingredient.update_effect(&mut self.discoveries);
+                format!("{}\n{}", boil_text, ingredient.show_in_progress(&self.discoveries))
+            },
             None => return "The cauldron is empty.".to_string(),
         };
 

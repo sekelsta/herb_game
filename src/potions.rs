@@ -211,7 +211,6 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
     Potion::new(Relaxation, |elements| {
         elements[Water] = 3;
         elements[Fire] = 2;
-        elements[Earth] = 1;
         elements[Light] = 1;
         elements[Spirit] = 1;
     }),

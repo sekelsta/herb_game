@@ -182,6 +182,9 @@ impl KnowledgeState {
                 all_recipes.push(format!("{} ({}% strength): {}", effect.to_title_case(), (strength * 100.0).round() as i32, data));
             }
         }
+        if all_recipes.is_empty() {
+            return "Try brewing something first.".to_string();
+        }
         all_recipes.join("\n")
     }
 

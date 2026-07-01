@@ -308,7 +308,7 @@ impl Ingredient {
         return provide > 0 && provide - modifiers[Modifier::Stabilize] > element.base_stability();
     }
 
-    pub fn boil(&mut self, discoveries: &mut KnowledgeState) -> String {
+    pub fn boil(&mut self, _discoveries: &mut KnowledgeState) -> String {
         // Evaporation
         let mut evaporated = None;
         for e in EVAPORABLE_ELEMENTS {
@@ -339,7 +339,8 @@ impl Ingredient {
                 taint_spread = true;
             }
         }
-        self.update_effect(discoveries);
+        // Deliberately skip - avoid logging an in-between effect that can't be kept
+        // self.update_effect(discoveries);
         match (taint_spread, evaporated) {
             (false, None) => "The cauldron boils.".to_string(),
             (false, Some(e)) => format!("The cauldron boils. Elemental {} evaporates.", e.to_string().to_lowercase()),
