@@ -31,7 +31,7 @@ pub static ROT: Lazy<Ingredient> = Lazy::new(|| {
 
 #[derive(Clone, Copy, Debug, Enum, EnumIter, PartialEq, Serialize, Deserialize)]
 pub enum Modifier {
-    Strengthen, // Weaken if value is negative
+    Boost, // Weaken if value is negative
     Stabilize, // Destabilize if value is negative
     Provide,
     //Join,
@@ -198,7 +198,7 @@ impl Ingredient {
             }
 
             let provide = if discovered[element][Modifier::Provide] { status[Modifier::Provide] } else { 0 };
-            let strengthen = if discovered[element][Modifier::Strengthen] { status[Modifier::Strengthen] } else { 0 };
+            let strengthen = if discovered[element][Modifier::Boost] { status[Modifier::Boost] } else { 0 };
             let stability = if discovered[element][Modifier::Stabilize] && discoveries.stability_known() { status[Modifier::Stabilize] } else { 0 };
             if provide == 0 && strengthen == 0 && stability == 0 {
                 // Skip showing this as unknown inside the cauldron
@@ -283,9 +283,9 @@ impl Ingredient {
                 evaporated = Some(e);
                 self.elements[e][Modifier::Provide] -= 1;
                 break;
-            } else if self.elements[e][Modifier::Strengthen] > 0 {
+            } else if self.elements[e][Modifier::Boost] > 0 {
                 evaporated = Some(e);
-                self.elements[e][Modifier::Strengthen] -= 1;
+                self.elements[e][Modifier::Boost] -= 1;
                 break;
             }
         }
@@ -425,12 +425,12 @@ impl Ingredient {
                 let power = self.elements[element][Modifier::Provide];
                 let before = self.elements[element][modifier];
                 match modifier {
-                    Modifier::Strengthen => self.elements[element][Modifier::Provide] = (power + amount.min(power)).max(0),
+                    Modifier::Boost => self.elements[element][Modifier::Provide] = (power + amount.min(power)).max(0),
                     Modifier::Stabilize => self.elements[element][Modifier::Stabilize] += amount,
                     Modifier::Provide => self.elements[element][Modifier::Provide] += amount,
                 }
                 if before != self.elements[element][modifier] && (discoveries.stability_known() || modifier != Modifier::Stabilize)
-                        || (modifier == Modifier::Strengthen && power > 0 && ingredient.elements[element][Modifier::Strengthen] != 0) {
+                        || (modifier == Modifier::Boost && power > 0 && ingredient.elements[element][Modifier::Boost] != 0) {
                     match ingredient.kind {
                         IngredientKind::Herb { species } => {
                             let map = discoveries.known_elements.entry(species).or_insert(EnumMap::default());

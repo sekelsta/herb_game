@@ -402,7 +402,7 @@ impl World {
         if brew.is_unstable(Element::Light) {
             brew.elements[Element::Light][Modifier::Provide] = 0;
             brew.elements[Element::Light][Modifier::Stabilize] = 0;
-            brew.elements[Element::Light][Modifier::Strengthen] = 0;
+            brew.elements[Element::Light][Modifier::Boost] = 0;
             messages.push(Element::Light.unstable_message().to_string());
         }
         if brew.is_unstable(Element::Thunder) {

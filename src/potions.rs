@@ -46,6 +46,8 @@ pub enum Effect {
     Feysight,
     Alertness,
     Sparkles,
+    Coolness,
+    Stoneskin,
 }
 
 impl Effect {
@@ -65,13 +67,16 @@ impl Effect {
 
     pub fn sale_value(&self) -> i32 {
         match self {
+            Coolness => 5,
+            Sparkles => 5,
+            Alertness => 6,
             HealthBoost => 6,
-            CoughRemedy => 8,
-            FeverReducer => 8,
             InsectRepellent => 7,
+            PlantGrowth => 8,
+            FeverReducer => 8,
             SnakeRepellent => 8,
             CharmProtection => 9,
-            PlantGrowth => 6,
+            CoughRemedy => 10,
             WoundHealing => 10,
             Love => 8,
             Fear => 9,
@@ -79,11 +84,14 @@ impl Effect {
             Courage => 12,
             Relaxation => 12,
             Sleep => 12,
+            Feysight => 12,
+            Poison => 13,
             Paralysis => 14,
             Intelligence => 16,
             Strength => 14,
             Patience => 12,
             Resilience => 15,
+            Stoneskin => 20,
             Speed => 14,
             Charisma => 18,
             Perception => 15,
@@ -94,14 +102,10 @@ impl Effect {
             Freeze => 26,
             Shock => 23,
             Shine => 15,
-            Poison => 13,
             Darkness => 28,
             Butterflies => 32,
             Fireflies => 30,
-            Sparkles => 4,
             Invisibility => 36,
-            Feysight => 12,
-            Alertness => 5,
         }
     }
 
@@ -119,12 +123,14 @@ impl Effect {
             Sparkles => "sparkling potion".to_string(),
             CoughRemedy | FeverReducer | InsectRepellent | SnakeRepellent | Charisma | Shock | Lightning | Poison | Darkness | Flame =>
                 self.to_title_case().to_ascii_lowercase(),
-            Patience | Rage | Fear | Courage | Resilience | Cleanliness | PlantGrowth | Butterflies | Fireflies | Feysight | Alertness =>
+            Patience | Rage | Fear | Courage | Resilience | Cleanliness | PlantGrowth | Butterflies | Fireflies | Feysight | Alertness | Stoneskin =>
                 format!("potion of {}", self.to_title_case().to_ascii_lowercase()),
             Love | Strength | Intelligence | Invisibility =>
                 format!("{} potion", self.to_title_case().to_ascii_lowercase()),
             Sleep =>
                 format!("{} draught", self.to_title_case().to_ascii_lowercase()),
+            Coolness =>
+                format!("draught of {}", self.to_title_case().to_ascii_lowercase()),
             Speed =>
                 format!("{} booster", self.to_title_case().to_ascii_lowercase()),
         }
@@ -198,11 +204,15 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Earth] = 2;
     }),
     // ------ Tier 1 ------ //
+    Potion::new(Stoneskin, |elements| {
+        elements[Earth] = 8;
+        elements[Water] = 1;
+        elements[Spirit] = 2;
+    }),
     Potion::new(Sleep, |elements| {
         elements[Water] = 3;
         elements[Shadow] = 3;
         elements[Spirit] = 1;
-        elements[Taint] = 1;
     }),
     Potion::new(Love, |elements| {
         elements[Fire] = 3;
@@ -288,8 +298,9 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Air] = 2;
     }),
     Potion::new(Loveliness, |elements| {
-        elements[Air] = 7;
-        elements[Fire] = 3;
+        elements[Air] = 6;
+        elements[Light] = 2;
+        elements[Fire] = 2;
     }),
     Potion::new(Flame, |elements| {
         elements[Fire] = 8;
@@ -301,10 +312,15 @@ pub static REFERENCE_POTIONS: Lazy<Vec<Potion>> = Lazy::new(|| vec!(
         elements[Thunder] = 2;
         elements[Air] = 1;
     }),
-    Potion::new(FeverReducer, |elements| {
+    Potion::new(Coolness, |elements| {
         elements[Ice] = 3;
         elements[Water] = 2;
         elements[Shadow] = 1;
+    }),
+    Potion::new(FeverReducer, |elements| {
+        elements[Ice] = 4;
+        elements[Earth] = 3;
+        elements[Shadow] = 3;
     }),
     Potion::new(SnakeRepellent, |elements| {
         elements[Ice] = 3;
