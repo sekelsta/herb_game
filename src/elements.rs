@@ -28,6 +28,7 @@ pub const EVAPORABLE_ELEMENTS: [Element; 8] = [
     Shadow,
     Water,
     Mana,
+    Thunder,
 ];
 
 
@@ -89,7 +90,7 @@ impl Element {
             Light => "The brew turns blindingly bright. You shield your eyes, and when it's over, you see all elemental light has disappeared.",
             Shadow => "You cauldron is engulfed in a thick and creeping darkness. You flee. When you return, faint wisps of shadow still swirl about, but the cauldron is empty.",
             Ice => "The brew crackles and freezes solid. You stoke the fire, but when it finally thaws, all that's left is plain water.",
-            Thunder => "The cauldron suddenly rattles. Alarmed, you back up just before a great 'boom' sends your mixture spattering across the yard. Only a little is left of it.",
+            Thunder => "The cauldron suddenly rattles. Alarmed, you back up just before a great 'boom' sends spatters of your mixture across the yard.",
             Mana => "Suddenly, instead of containing a potion, your cauldron is full of butterflies. They flutter away in a colorful swarm, leaving you with an empty cauldron.",
             Taint => "As the elemental magic becomes tainted, the mixture takes on a slimy appearance and begins creeping up the sides of the cauldron. You run, but not before some of your ingredients become tainted.",
             Void => "With a small 'pop', the mixture in your cauldron suddenly disappears. No trace of your work remains.",

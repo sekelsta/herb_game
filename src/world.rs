@@ -408,7 +408,7 @@ impl World {
         if brew.is_unstable(Element::Thunder) {
             for (element, status) in brew.elements {
                 for (modifier, _amount) in status {
-                    brew.elements[element][modifier] = status[modifier] * 3 / 4;
+                    brew.elements[element][modifier] = status[modifier] * 2 / 3;
                 }
             }
             messages.push(Element::Thunder.unstable_message().to_string());

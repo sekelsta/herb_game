@@ -278,7 +278,8 @@ impl Ingredient {
         // Evaporation
         let mut evaporated = None;
         for e in EVAPORABLE_ELEMENTS {
-            if self.elements[e][Modifier::Provide] > 0 {
+            let provide = self.elements[e][Modifier::Provide];
+            if provide > 0 && provide < self.elements[e][Modifier::Stabilize] {
                 evaporated = Some(e);
                 self.elements[e][Modifier::Provide] -= 1;
                 break;
